@@ -1,0 +1,25 @@
+\chapter{Persistence Techniques}\label{chapter:persistence techniques}
+In this chapter, we will look more closely at \emph{persistence}: the ways in which malware maintains access to infected systems. To test Call Signatures and CSP, we will use them to detect persistence in real-world malware samples (in \autoref{chapter:experiments}). Before we can do this, we need to better understand persistence and how it is implemented by malware. We choose to focus on persistence as it is common for malware to implement.
+
+In \autoref{chapter:call signatures for persistence techniques}, we will write Call Signatures that capture the function calls used to implement the techniques discussed in this chapter.
+
+\medskip
+
+Persistence is achieved by using or altering system settings to automatically launch an executable whenever a specific startup event happens (e.g. the system booting or a user logging in). Windows provides multiple ways to automatically run applications on startup. This is a feature of Windows with legitimate use cases (e.g. starting Spotify or antivirus software automatically). These are generally known as \emph{Autostart Extensibility Points} (ASEPs) \cite{asep-charactericstics-detectabilitiy}.
+
+There are hundreds of ASEPs \cite{evading-autoruns}, making it difficult to list all executables that are automatically run. Windows provides a tool, called Autoruns\footnote{\tiny \url{https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns}}, that analyzes many ASEPs on a running Windows system and lists the executables and DLLs that are automatically started, but even this tool is not exhaustive \cite{evading-autoruns}.
+
+However, not every ASEP is useful to malware, as many ASEPs depend on specific applications being installed or specific Windows features being enabled. Malware authors prefer to use ASEPs that are widely applicable (e.g. across all Windows systems) and reliable. Malware often uses multiple ASEPs, to increase their changes of maintaining access.
+
+\medskip
+
+In this chapter, we discuss the ASEPs that are commonly\footnote{According to well-known malware analysis sources such as Practical Malware Analysis \cite{practical-malware-analysis}.} used by malware, which we refer to as persistence techniques. We subdivided these into four categories\footnote{There are more categories of persistence techniques, but these categories cover the commonly used techniques. See {\tiny \url{https://attack.mitre.org/tactics/TA0003/}} for a more complete taxonomy.}: registry-based (\autoref{section:registry-based persistence}), directory-based (\autoref{section:directory-based persistence}), service-based (\autoref{section:service-based persistence}) and scheduled task-based (\autoref{section:scheduled task-based persistence}). We give each technique a unique identifier, to easily reference it later.
+
+Besides a description of how a technique works, we also note under which user the executable is run and whether Administrator privileges are required to implement the technique.
+
+As a point of reference, we provide the relevant MITRE ATT\&CK ID (discussed in \autoref{chapter:background malware}) of each persistence technique. Note that multiple persistence techniques have the same ATT\&CK ID, as they are categorized as the same ATT\&CK technique. This shows that our classification is more fine-grained than the classification of the ATT\&CK framework.
+
+\input{content/techniques/rp.tex}
+\input{content/techniques/dp.tex}
+\input{content/techniques/sp.tex}
+\input{content/techniques/tp.tex}

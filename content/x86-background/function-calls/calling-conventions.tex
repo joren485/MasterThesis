@@ -1,0 +1,101 @@
+\subsection{Calling Conventions}\label{section:calling conventions}
+Functions are supported in assembly, through the \texttt{call} and \texttt{ret} instructions (discussed in \autoref{section:control flow instructions}). However, assembly does not explicitly support passing arguments to functions. Instead, arguments have to be stored in memory or registers before a function call such that the function will be able to access them. A \emph{calling convention} defines how arguments are passed to a function, on the assembly level. More specifically, a calling convention defines:
+\begin{itemize}
+    \item How arguments are passed to the callee. This can be on the stack, in registers, or both.
+    \item The order in which arguments are passed to the callee.
+    \item Whether the callee or caller cleans up the stack after the callee is finished.
+    \item How return values are passed to the caller.
+\end{itemize}
+
+Calling conventions are specific to a function, which means that multiple calling conventions can be used throughout a single executable.
+
+As we will see in \autoref{section:decompiling function calls}, calling conventions are important when analyzing function calls.
+
+\medskip
+
+There are many calling conventions in x86. We will discuss the three most prominent: cdecl, stdcall, and fastcall.
+
+\subsubsection{Cdecl}\label{section:cdecl}
+The cdecl\footnote{\tiny \url{https://docs.microsoft.com/en-us/cpp/cpp/cdecl?view=msvc-170}} convention is the default calling convention used by C. Arguments are pushed to the stack, right to left (i.e. the first argument is pushed to the stack last). The caller cleans up the stack. The return value is passed via \texttt{eax}.
+
+The example C code and corresponding assembly\footnote{Compiled without any optimizations.} in \autoref{listing:sum cdecl} and \autoref{listing:main cdecl} shows cdecl in practice.
+
+\begin{enumerate}
+    \item \texttt{main} pushes the arguments to the stack (lines 7 and 9).
+    \item \texttt{main} calls \texttt{sum} (line 10).
+    \item \texttt{sum} runs and saves its result in \texttt{eax} (line 4).
+    \item \texttt{main} cleans up the stack after the call (line 11), by lowering the top of the stack by 8 (the size of two integers).
+\end{enumerate}
+
+\begin{lstlisting}[label={listing:sum cdecl}, caption={The C code and assembly of a function that uses cdecl.}, captionpos=b]
+int sum(int a, int b) { push    ebp
+    return a + b;       mov     ebp, esp
+}                       mov     eax, [ebp + 8]
+                        add     eax, [ebp + 12]
+                        pop     ebp
+                        retn
+\end{lstlisting}
+
+\begin{lstlisting}[label={listing:main cdecl}, caption={The C code and assembly of a function calling the function from \autoref{listing:sum cdecl} using cdecl.}, captionpos=b]
+int main() {            push    ebp
+    int x = 1;          mov     ebp, esp
+    int y = 2;          sub     esp, 8
+    return sum(x, y);   mov     [ebp - 8], 1
+}                       mov     [ebp - 4], 2
+                        mov     eax, [ebp - 4]
+                        push    eax
+                        mov     ecx, [ebp - 8]
+                        push    ecx
+                        call    sum
+                        add     esp, 8
+                        mov     esp, ebp
+                        pop     ebp
+                        retn
+\end{lstlisting}
+
+\subsubsection{Stdcall}
+The stdcall\footnote{\tiny \url{https://docs.microsoft.com/en-us/cpp/cpp/stdcall?view=msvc-170}} convention is used to call Win32 API functions. It is similar to cdecl, however, in stdcall, the callee cleans up the stack after it is done.
+
+\subsubsection{Fastcall}
+Fastcall\footnote{\tiny \url{https://docs.microsoft.com/en-us/cpp/cpp/fastcall?view=msvc-170}} is a calling convention designed by Microsoft. It is meant to offer a performance boost over cdecl and stdcall by passing some arguments via registers. The first two arguments that fit in a register are passed in \texttt{ecx} and \texttt{edx}, respectively. All other arguments are pushed to the stack right to left. In fastcall, the callee is responsible for cleaning up the stack after it is done.
+
+In \autoref{listing:sum fastcall}, and \autoref{listing:main fastcall} we see C code and assembly similar to the code in \autoref{section:cdecl}. \texttt{sum} in \autoref{listing:sum fastcall} uses fastcall\footnote{This can be explicitly specified in C code by adding the fastcall keyword to the function declaration. For example, \texttt{int \_\_fastcall sum(int a, int b, int c)}.}.
+
+\begin{enumerate}
+    \item \texttt{main} stores the first two arguments to \texttt{edx} and \texttt{ecx} (lines 9 and 10).
+    \item \texttt{main} pushes the third argument to the stack (line 8).
+    \item \texttt{main} calls \texttt{sum} (line 11).
+    \item \texttt{sum} runs and saves its result in \texttt{eax} (line 8).
+    \item \texttt{sum} cleans up the stack (line 11) by lowering the top of the stack by 4 (the size of one integer). This implicitly happens in the \texttt{retn 4} instruction.
+\end{enumerate}
+
+\begin{lstlisting}[label={listing:sum fastcall}, caption={The C code and assembly of a function that uses fastcall.}, captionpos=b]
+int sum(int a,int b,int c){ push    ebp
+    return a + b + c;       mov     ebp, esp
+}                           sub     esp, 8
+                            mov     [ebp - 8], edx
+                            mov     [ebp - 4], ecx
+                            mov     eax, [ebp - 4]
+                            add     eax, [ebp + 8]
+                            add     eax, [ebp + 8]
+                            mov     esp, ebp
+                            pop     ebp
+                            retn    4
+\end{lstlisting}
+
+\begin{lstlisting}[label={listing:main fastcall}, caption={The C code and assembly of a function calling the function from \autoref{listing:sum fastcall} using fastcall.}, captionpos=b]
+int main() {                push    ebp
+    int x = 1;              mov     ebp, esp
+    int y = 2;              sub     esp, 12
+    int z = 3;              mov     [ebp - 12], 1
+    return sum(x, y, z);    mov     [ebp - 8], 2
+}                           mov     [ebp - 4], 3
+                            mov     eax, [ebp - 4]
+                            push    eax
+                            mov     edx, [ebp - 8]
+                            mov     ecx, [ebp - 12]
+                            call    sum
+                            mov     esp, ebp
+                            pop     ebp
+                            retn
+\end{lstlisting}

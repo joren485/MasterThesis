@@ -1,0 +1,14 @@
+\section{Scheduled Task-based Persistence Techniques}\label{section:scheduled task-based persistence}
+Scheduled Tasks are a way to run applications at pre-defined events or times in Windows (discussed in \autoref{section:scheduled tasks services in windows}). Like services, malware can use them for persistence.
+
+\begin{enumerate}[label={\textbf{TP\arabic*}:}, ref=TP\arabic*, start=0]
+    \item \label{TP0} Malware can create a scheduled task that runs on boot or a schedule (e.g. every hour) to ensure persistence. As this task can run as the \texttt{LocalSystem} account, this would immediately give the malware full administrative privileges.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: Scheduled Tasks can run as a specific user, \texttt{LocalService}, \texttt{NetworkService}, or \texttt{LocalSystem}. See \autoref{section:scheduled tasks services in windows} for more detailed information on these accounts.
+
+        \item \textbf{Administrator rights required}: Yes
+
+        \item \textbf{ATT\&CK ID}: T1053.005
+    \end{itemize}
+\end{enumerate}

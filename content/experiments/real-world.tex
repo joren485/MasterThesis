@@ -1,0 +1,91 @@
+\section{Detection of Persistence Techniques in Real-World Samples}\label{section:real-world experiments}
+To analyze the effectiveness of Call Signatures and CSP, we will run four experiments on real-world malware samples.
+
+In \autoref{chapter:call signatures for persistence techniques}, we wrote Call Signatures for four techniques (one of each category discussed in \autoref{chapter:persistence techniques}): \autoref{RP0}, \autoref{DP0}, \autoref{SP0} and \autoref{TP0}. For each of these techniques, we will create a dataset of samples that implement the technique and try to detect the technique in that dataset using CSP. The goal of these experiments is to see how many true positives and false negatives CSP (using the Call Signatures) finds in a dataset of true positives.
+
+\subsection{The Sources of Malware Samples}\label{section:sources of samples}
+To create the datasets, we use the following (publicly available) sources for samples:
+\begin{itemize}
+    \item APTMalware\footnote{\tiny \url{https://github.com/cyber-research/APTMalware}}: A dataset of state-sponsored malware. This was created by Coen Boot for his master thesis \cite{cboot}.
+
+    \item Capa Test Files\footnote{\tiny \url{https://github.com/mandiant/capa-testfiles}}: Files used by Capa for testing.
+
+    \item theZoo\footnote{\tiny \url{https://github.com/ytisf/theZoo}}: A public repository of live malware samples.
+\end{itemize}
+
+Together these datasets contain 3571 unique samples that range from simple banking malware to advanced state-sponsored malware samples.
+
+\subsection{Creating the Datasets}
+We use the three sources of samples in \autoref{section:sources of samples} to create four datasets, one for each of the four techniques we will analyze.
+
+To know which samples from \autoref{section:sources of samples} implement each of the techniques, we used commercial dynamic analysis platforms (similar to Hybrid Analysis\footnote{\tiny \url{https://www.hybrid-analysis.com}}, Intezer Analyze\footnote{\tiny \url{https://analyze.intezer.com}}, and the behavioral analysis of VirusTotal\cite{virustotal-behavioural}). These dynamic analysis platforms run malware samples in a (secure and ephemeral) virtual environment. They report on the actions that the samples take (e.g. any IP address the malware tries to connect to) and record the changes in the operating system (e.g. any changed Windows Registry keys).
+
+We used the results of the dynamic analysis of each sample to determine whether it implements \autoref{RP0}, \autoref{DP0}, \autoref{SP0}, or \autoref{TP0}. For example, if the dynamic analysis detected that a sample changed the Registry key \path{HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run}, we know that it implements \autoref{RP0}.
+
+\medskip
+
+It is important to note that dynamic analysis is not a replacement for static analysis. We use it to establish a baseline of true positive samples, but it is not able to find all samples that implement each technique \cite{survey-anti-analysis}.
+
+\medskip
+
+This resulted in the following datasets:
+\begin{itemize}
+    \item Dataset RP: 162 samples that implement \autoref{RP0}. The hashes can be found in \autoref{appendix:hashes dataset rp}.
+    \item Dataset DP: 134 samples that implement \autoref{DP0}. The hashes can be found in \autoref{appendix:hashes dataset dp}.
+    \item Dataset SP: 133 samples that implement \autoref{SP0}. The hashes can be found in \autoref{appendix:hashes dataset sp}.
+    \item Dataset TP: 28\footnote{We found significantly fewer samples for the TP dataset than for the other dataset. This might be a sign that scheduled task-based persistence techniques are less common than we thought.} samples that implement \autoref{TP0}. The hashes can be found in \autoref{appendix:hashes dataset tp}.
+\end{itemize}
+
+\subsection{Analyzing the Datasets}
+We analyzed each sample in each dataset with the Call Signatures written for the technique of the dataset. Specifically:
+\begin{itemize}
+    \item We analyzed each sample in dataset RP with the Call Signatures from \autoref{section:call signatures rp}.
+    \item We analyzed each sample in dataset DP with the Call Signatures from \autoref{section:call signatures dp}.
+    \item We analyzed each sample in dataset SP with the Call Signatures from \autoref{section:call signatures sp}.
+    \item We analyzed each sample in dataset TP with the Call Signatures from \autoref{section:call signatures tp}.
+\end{itemize}
+
+Because IDA Pro is designed to analyze a single executable at a time, we wrote a script that can batch process the samples. This script opens each sample in IDA Pro in headless mode (i.e. without a GUI), waits for the IDA Pro analysis to complete, runs the plugin, and stores the IDA Pro output in a log file. After a dataset is fully analyzed, we can analyze the logs of each sample to find how many persistence techniques were detected by CSP.
+
+The average analysis time of a sample is twenty-one seconds. The majority of this time is taken up by the startup and analysis of IDA Pro and decompiling the functions.
+
+\subsection{Discussion of the Results}
+\autoref{table:experiment real-world results} shows the results of this analysis. The first column shows the number of samples in each dataset. The second column shows how many samples were detected by CSP to implement the persistence technique in the dataset.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{l|ll}
+        \hline
+        Dataset     & Total Samples & Detected by CSP   \\ \hline
+        Dataset RP  & 162           & 115 (70.99\%)     \\ \hline
+        Dataset DP  & 134           & 134 (100\%)       \\ \hline
+        Dataset SP  & 133           & 129 (96.99\%)     \\ \hline
+        Dataset TP  &  28           &  19 (67.86\%)     \\ \hline
+    \end{tabular}
+    \caption{The total number of samples and the number of detected samples by CSP in each dataset.}
+    \label{table:experiment real-world results}
+\end{table}
+
+As we can see, CSP detected the persistence techniques in most samples. However, for three datasets, CSP did not detect the persistence technique in all samples. This is expected, as the datasets were made using dynamic analysis and the analysis was done using static analysis (we discussed the differences in \autoref{section:malware analysis}).
+
+We can see the advantage of detecting functionality in binaries by looking at function calls in the results of \autoref{DP0} and \autoref{SP0}. Both of these techniques are implemented using specific Windows API function calls (i.e. the functions used to resolve paths and \texttt{CreateService}), making them predictable and hard to hide (because regardless of the obfuscation, the malware will need to make the function call).
+
+On the other hand, the \autoref{RP0} and \autoref{TP0} samples have a significantly lower detection percentage. We assume that this is because both techniques rely more heavily on strings, which are easier to obfuscate. Registry-based persistence techniques always use strings to specify the path of a Registry key and creating a Scheduled Task is more commonly done via the command line (i.e. also using strings), because it is easier to implement than using the Windows API (as we saw in \autoref{section:call signatures tp}). This shows a fundamental weakness in CSP and Call Signatures (and static analysis in general): if data is obfuscated in a binary, it is impossible to know what a binary does, without first deobfuscating the data.
+
+\medskip
+
+We manually analyzed about half of the false negatives (i.e. the samples that were not detected) and we found that the underlying reasons for the false negatives in each dataset fell into two categories\footnote{Analyzing the manual samples took us about three hours.}:
+\begin{enumerate}
+    \item Limitations of IDA Pro: In some cases, IDA Pro was unable to decompile part of a binary. For example, a common limitation of IDA Pro is that it is unable to decompile exception handling\footnote{\tiny \url{https://www.hex-rays.com/products/decompiler/manual/limit.shtml}}.
+
+    \item Obfuscation by the malware author: As discussed above, malware authors often employ obfuscation to hide data within the binary.
+    \begin{itemize}
+        \item Some binaries placed data in a special resource section within the binary. When specific data is needed during runtime, it is dynamically resolved in the resource section. This makes it hard to know where specific data is used, without running the binary.
+
+        \item Some binaries encrypt strings by XORing each byte in a string and decrypting the strings at runtime.
+
+        \item Some binaries mix executable code and data throughout the binary, confusing the disassembler.
+
+        \item Some binaries call offsets within functions to confuse the disassembler about what functions they call.
+    \end{itemize}
+\end{enumerate}

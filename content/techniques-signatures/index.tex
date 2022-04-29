@@ -1,0 +1,21 @@
+\chapter{Call Signatures for Persistence Techniques}\label{chapter:call signatures for persistence techniques}
+In this chapter, we will write Call Signatures (introduced in \autoref{chapter:call signatures}) to describe function calls used in four of the commonly implemented persistence techniques (from \autoref{chapter:persistence techniques}). In \autoref{chapter:experiments}, we will use these Call Signatures to detect persistence techniques in real-world malware samples and to analyze the effectiveness of Call Signatures.
+
+\medskip
+
+We introduced four categories of persistence techniques in \autoref{chapter:persistence techniques} (directory-based, Registry-based, service-based, and scheduled task-based techniques). We first analyze what function calls are made to implement these persistence techniques, and we then look at how we can express these function calls as Call Signatures.
+
+\begin{itemize}
+    \item In \autoref{section:call signatures rp}, we write Call Signatures for \autoref{RP0}.
+    \item In \autoref{section:call signatures dp}, we write Call Signatures for \autoref{DP0}.
+    \item In \autoref{section:call signatures sp}, we write Call Signatures for \autoref{SP0}.
+    \item In \autoref{section:call signatures tp}, we write Call Signatures for \autoref{TP0}.
+\end{itemize}
+
+Finally, in \autoref{section:reflection on writing call signatures}, we reflect on writing Call Signatures.
+
+\input{content/techniques-signatures/rp.tex}
+\input{content/techniques-signatures/dp.tex}
+\input{content/techniques-signatures/sp.tex}
+\input{content/techniques-signatures/tp.tex}
+\input{content/techniques-signatures/reflection.tex}

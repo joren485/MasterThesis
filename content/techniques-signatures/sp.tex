@@ -1,0 +1,65 @@
+\section{Service-based Persistence Techniques}\label{section:call signatures sp}
+In this section, we will discuss Call Signatures for \autoref{SP0}. As we discussed in \autoref{section:scheduled tasks services in windows}, there are multiple ways for an application to create a new service:
+
+\begin{itemize}
+    \item Calling the \texttt{CreateService} API function.
+    \item Using the \texttt{sc.exe} command-line application.
+    \item Writing directly to the Windows Registry.
+\end{itemize}
+
+\subsection{Creating Services Using the Windows API}
+To create a service that is automatically started using the Windows API, an application needs to call the \texttt{CreateService} function.
+
+The fifth argument of \texttt{CreateService} is a constant that signifies how the new service should be started. As malware wants the service to be started automatically, it uses the \texttt{SERVICE\_AUTO\_START}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-createservicew}} constant. This constant has the value 2.
+
+\autoref{listing:call signature CreateService} is a Call Signature that describes calls to \texttt{CreateService} with \texttt{SERVICE\_AUTO\_START} as the fifth argument.
+
+\begin{lstlisting}[label={listing:call signature CreateService}, caption={A Call Signature that matches a call to \texttt{CreateService}.}, captionpos=b]
+---
+
+signature:
+    technique: "SP0"
+    description: >
+      This Call Signature can be used to
+      search for calls to CreateService.
+    rules:
+        - element: "function name"
+          contains: "CreateService"
+
+        - element: "number of arguments"
+          equals: 13
+
+        - element: "argument"
+          argument_index: 5
+          equals: 0x00000002
+\end{lstlisting}
+
+\subsection{Creating Services Using Sc.exe}\label{section:call signature sc.exe}
+To create a service using the command line, malware needs to run the Sc.exe command. For example, the command in \autoref{listing:sc.exe command example}
+
+\begin{lstlisting}[label={listing:sc.exe command example}, caption={An example usage of \texttt{sc.exe}.}, captionpos=b]
+sc create ExampleService binpath="C:\temp\example.exe" start="auto" obj="LocalSystem"
+\end{lstlisting}
+
+To find such commands in a binary, we need a Call Signature that has rules for the two strings that will always be a part of these commands: ``sc'' and ``create''. The Call Signature in \autoref{listing:call signature sc.exe} has these rules.
+
+\begin{lstlisting}[label={listing:call signature sc.exe}, caption={A Call Signature that matches creating a service using the \texttt{sc.exe} application.}, captionpos=b]
+---
+
+signature:
+    technique: "SP0"
+    description: >
+      This Call Signature can be used to
+      search for usage of sc.exe commands.
+    rules:
+      - element: "any argument"
+        contains: "sc"
+
+      - element: "any argument"
+        contains: "create"
+\end{lstlisting}
+
+\subsection{Creating Services Using the Registry}
+The configuration of services is stored in the Registry in the key \path{HKLM\SYSTEM\CurrentControlSet\Services}. It is possible to write to a subkey of this key directly, to create a new service.
+
+To be able to detect this, we will use the same Call Signatures as in \autoref{section:call signatures rp}, but we will use \path{HKLM\SYSTEM\CurrentControlSet\Services} (instead of \path{HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run}).

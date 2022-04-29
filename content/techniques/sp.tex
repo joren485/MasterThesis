@@ -1,0 +1,16 @@
+\section{Service-based Persistence Techniques}\label{section:service-based persistence}
+As discussed in \autoref{section:scheduled tasks services in windows}, a Windows service is a background process that is started at boot time. Malware uses this to ensure that it is started as a background task.
+
+\begin{enumerate}[label={\textbf{SP\arabic*}:}, ref=SP\arabic*, start=0]
+    \item \label{SP0} Malware can create a service that starts its executable in the background on boot. As this service can run as the \texttt{LocalSystem} account, this would immediately give the malware full administrative privileges.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: Services can run as any user account, \texttt{LocalService}, \texttt{NetworkService}, or \texttt{LocalSystem}. See \autoref{section:scheduled tasks services in windows} for more detailed information on these accounts.
+
+        \item \textbf{Administrator rights required}: Yes
+
+        \item \textbf{ATT\&CK ID}: T1043.003
+    \end{itemize}
+\end{enumerate}
+
+As services are configured in the Windows Registry, there is some overlap between \autoref{SP0} and \autoref{section:registry-based persistence}. However, as the goal is to start a service, we felt it best to add these into their own category.

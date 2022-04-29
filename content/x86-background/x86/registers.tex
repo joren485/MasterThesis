@@ -1,0 +1,39 @@
+
+\subsection{Registers}\label{section:registers}
+Registers are small storage units that a CPU uses to store data during computations. Registers are implemented on the CPU itself, making data access significantly faster than accessing data stored in memory. There are two types of registers: general purpose registers and special purpose registers.
+
+\subsubsection{General-purpose Registers}
+General-purpose registers are used to store data or a memory address (i.e. a pointer) to data. x86 (specifically IA-32) has eight general-purpose registers, each having a traditional purpose. However, most can also be used for other purposes.
+
+\begin{itemize}
+    \item \texttt{eax} (extended\footnote{32-bit registers are called ``extended'' to distinguish them from their 16-bit counterpart. For example, the 32-bit \texttt{eax} register and the 16-bit \texttt{ax} register.} accumulator register): Used in arithmetic operations.
+    \item \texttt{ebx} (extended base register): Used as a pointer to data stored in memory.
+    \item \texttt{ecx} (extended counter register): Stores the counter in looping operations.
+    \item \texttt{edx} (extended data register): Used in I/O operations.
+    \item \texttt{esi} (extended source index): Stores the address of the input data in certain operations on strings.
+    \item \texttt{edi} (extended destination index): Stores the address of the output data in certain operations on strings.
+    \item \texttt{ebp} (extended base pointer): Stores the address of the base of the current stack frame.
+    \item \texttt{esp} (extended base stack pointer): Stores the address to the top of the stack.
+\end{itemize}
+
+In IA-32 these registers are larger versions of the registers used in the 16-bit and 8-bit variants of x86. For backward compatibility, x86 allows access to the 16-bit and 8-bit registers as the lower half of the 32-bit registers. Similarly, the 32-bit registers can be accessed in x86-64. \autoref{table:registers} shows how these register sizes relate to each other, using the \texttt{eax} register as an example.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|l|llllllll|}
+        \hline
+        \textbf{64-bit} & \multicolumn{8}{c|}{\texttt{rax}} \\ \hline
+        \textbf{32-bit} & & & & \multicolumn{1}{l|}{} & \multicolumn{4}{c|}{\texttt{eax}} \\ \hline
+        \textbf{16-bit} & & & & & & \multicolumn{1}{l|}{} & \multicolumn{2}{c|}{\texttt{ax}} \\ \hline
+        \textbf{8-bit} & & & & & & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{\texttt{ah}} & \texttt{al} \\ \hline
+    \end{tabular}
+    \caption{The relation between the different accumulator registers in variants of x86.}
+    \label{table:registers}
+\end{table}
+
+\subsubsection{Special Purpose Registers}
+Besides the general-purpose registers, x86 also has registers that store specific information about the program state and the CPU state. Two important registers with a specific purpose are:
+\begin{itemize}
+    \item \texttt{eflags} (extended flags): Stores the data of previous instructions (e.g. the result of a comparison of two values) and the processor state as booleans.
+    \item \texttt{eip} (extended instruction pointer): Stores the address of the next instruction.
+\end{itemize}

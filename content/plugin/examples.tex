@@ -1,0 +1,85 @@
+\section{Examples of Call Signatures Matching}\label{section:examples searching function calls using Call Signatures}
+In this section, we will look at an example of matching a function calls and Call Signatures. This is an example of the process laid out in \autoref{section:matching function call call signatures}.
+
+In this example, we will use an example function (\autoref{listing:sum function plugin}) and corresponding Call Signature \autoref{listing:call signature sum plugin} from \autoref{section:call signatures examples}
+
+\begin{lstlisting}[label={listing:sum function plugin}, caption={A C function that adds two integers.}, captionpos=b]
+int sum(int a, int b){
+    return a + b;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label={listing:call signature sum plugin}, caption={A Call Signature for \texttt{sum}.}, captionpos=b]
+---
+
+signature:
+    technique: "AddSum"
+    description: >
+        This Call Signature can be used to
+        search for calls to sum.
+    rules:
+        - element: "function name"
+          equals: "sum"
+
+        - element: "number of arguments"
+          equals: 2
+
+        - element: "argument"
+          argument_index: 0
+          type: "number"
+
+        - element: "argument"
+          argument_index: 1
+          type: "number"
+
+        - element: "any argument"
+          equals: 10
+\end{lstlisting}
+
+\medskip
+
+Let's say that IDA Pro identified the following function calls in a binary. To see if any of them match the Call Signature in \autoref{listing:call signature sum plugin}, we need to iterate through all the rules and see if they succeed when applied to the function call. In the following examples, a ``?'' signifies a function call element with an unknown value.
+\begin{itemize}
+    \item \texttt{sum(2, 3)}
+    \begin{enumerate}
+        \item The first rule succeeds because the function name equals ``\texttt{sum}''.
+
+        \item The second rule succeeds because the call takes two arguments.
+
+        \item The third rule succeeds because the first argument is an integer (i.e. a number).
+
+        \item The fourth rule succeeds because the second argument is also an integer.
+
+        \item The fifth rule fails, because no argument is equal to 10.
+    \end{enumerate}
+
+    As the fifth rule failed, this call is not a match.
+
+    \item \texttt{?(5, 10)}
+    \begin{enumerate}
+        \item The first rule succeeds, as the function name is allowed to be unknown. This is explained in detail in \autoref{listing:call signature sum plugin}.
+
+        \item The second rule succeeds because the call takes two arguments.
+
+        \item The third rule succeeds because the first argument is an integer.
+
+        \item The fourth rule succeeds because the second argument is also an integer.
+
+        \item The fifth rule succeeds because an argument (i.e. the second argument) is equal to 10.
+    \end{enumerate}
+
+    As all rules succeeded, this call is a match for the Call Signature in \autoref{listing:call signature sum plugin}.
+
+    \item \texttt{sum(10, ?)}
+    \begin{enumerate}
+        \item The first rule succeeds because the function name equals ``\texttt{sum}''.
+
+        \item The second rule succeeds because the call takes two arguments.
+
+        \item The third rule succeeds because the first argument is an integer.
+
+        \item The fourth rule failed, because the second argument is unknown. Unlike, the function name, rules will always fail on unknown arguments. This is explained in detail in \autoref{listing:call signature sum plugin}.
+    \end{enumerate}
+
+    As the fourth rule failed, this call is not considered a match and the fifth rule is not applied.
+\end{itemize}

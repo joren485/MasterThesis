@@ -1,0 +1,24 @@
+\section{Directory-based Persistence Techniques}\label{section:directory-based persistence}
+Windows provides special startup directories. Executables (or shortcuts to executables) in these directories are run when a user logs in. Malware can simply place its executable file in such a directory, and it will be started every time a user logs in.
+
+\begin{enumerate}[label={\textbf{DP\arabic*}:}, ref=DP\arabic*, start=0]
+    \item \label{DP0} Windows provides a startup directory for every user \cite{f-secure-persistence}.
+
+    The default path of this directory is \path{C:\Users\<user>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: No
+        \item \textbf{ATT\&CK ID}: T1547.001
+    \end{itemize}
+
+    \item \label{DP1} Windows also provides a system-wide startup directory. Files in these directories are run when any user logs in \cite{f-secure-persistence}.
+
+    The default path of this directory is \path{C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: Yes
+        \item \textbf{ATT\&CK ID}: T1547.001
+    \end{itemize}
+\end{enumerate}

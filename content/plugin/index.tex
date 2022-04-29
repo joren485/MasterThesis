@@ -1,0 +1,55 @@
+\chapter{Call Signatures Plugin}\label{chapter:plugin}
+In \autoref{chapter:call signatures}, we introduced Call Signatures, patterns that describe function calls. In this chapter, we implement an IDA Pro plugin (discussed in \autoref{section:ida pro plugins}): \emph{Call Signatures Plugin} (CSP for short). The goal of CSP is to search for function calls that match Call Signatures in a binary. In other words, Call Signatures and CSP are complementary: Call Signatures describe function calls and CSP searches for these function calls in a binary.
+
+In \autoref{chapter:experiments}, we experiment with this plugin by analyzing real-world world samples using Call Signatures from \autoref{chapter:call signatures for persistence techniques}.
+
+\medskip
+
+IDA Pro provides two advantages. First, IDA Pro contains a large suite of state-of-the-art static analysis tools, such as a disassembler and decompiler. IDA Pro plugins can build on these to automate part of malware analysis. Secondly, it allows malware analysts to easily integrate the plugin into their analysis routine, as many malware analysts will be using IDA Pro \cite{ida_guide}.
+
+IDA Pro allows users to search for basic patterns (e.g. strings and bytes), but not for more complex structures (e.g. function calls). To search for specific structures or patterns, users need to implement their own plugin.
+
+\medskip
+
+The source code is available at \url{https://github.com/joren485/CallSignaturesPlugin}.
+
+\medskip
+
+The analysis of a binary using CSP is done in the following steps:
+\begin{enumerate}
+    \item Before the plugin runs, IDA Pro disassembles the binary and extracts useful information. One of the most important steps the disassembler takes is to deduce the boundaries of each function in the binary.
+
+    \item CSP reads all Call Signatures (i.e. YAML files) in the plugin directory.
+
+    \item CSP loops over each function that IDA Pro has detected. For each function it takes the following steps:
+    \begin{enumerate}
+        \item If IDA Pro detects that the function matches a F.L.I.R.T. signature (see \autoref{chapter:related work}), the function is skipped and CSP continues with the next function in the binary.
+
+        Functions that match F.L.I.R.T. signatures are known uninteresting functions. They are either library functions (e.g. functions from the C standard library) or external functions (e.g. functions from a DLL). We skip these because we are interested in the functionality of the binary, not in the functionality of functions from libraries used by the binary.
+
+        \item CSP instructs IDA Pro to decompile the function. This transforms the assembly instructions of the function into C-like pseudocode.
+
+        Decompilation relies heavily on probabilistic heuristics because a lot of information is lost during compilation. Because of this, decompilation might fail, because the decompiler is unable to reconstruct assembly into pseudocode.
+
+        This decompilation includes reconstructing function calls as we discussed in \autoref{section:decompiling function calls}.
+
+        \item CSP compares each function call to each Call Signature. This process is discussed in more detail in \autoref{section:matching function call call signatures}.
+
+        If a function call matches a Call Signature, CSP writes to the IDA Pro log that a match was found.
+    \end{enumerate}
+\end{enumerate}
+
+\medskip
+
+\autoref{fig:csp screenshot} shows a screenshot of IDA Pro after CSP analyzed a sample\footnote{\texttt{4c01ffcc90e6271374b34b252fefb5d6fffda29f6ad645a879a159f78e095979}}.
+We can see an open tab that shows a list of detected function calls. For each function call, the plugin lists the address of the call instruction, the persistence technique, the decompiled call and the Call Signature that matched.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{resources/images/csp_screenshot.png}
+    \caption{A screenshot of CSP.}
+    \label{fig:csp screenshot}
+\end{figure}
+
+\input{content/plugin/matching.tex}
+\input{content/plugin/examples.tex}

@@ -1,0 +1,61 @@
+\subsection{Decompiling Function Calls}\label{section:decompiling function calls}
+Compiling is the process of translating source code into executable machine code. \emph{Decompiling} is the reverse process: translating machine code back into source code. Decompilers are important in reverse engineering software (especially malware analysis), because, if done well, they allow a far better understanding of the functionality of an executable binary. As information about the source code is lost during compilation, it is often not possible to perfectly translate a binary into its source code. Decompilation often relies on heuristics to structure machine code into source code.
+
+\medskip
+
+In \autoref{chapter:plugin}, we will use a decompiler (from IDA Pro) to decompile function calls. As function calls are not standardized in assembly, decompiling function calls is a complex process, which is also heavily dependent on heuristics. When we find a \texttt{call} instruction that we want to decompile, there are two steps to reconstructing the function call:
+\begin{enumerate}
+    \item Determine the calling convention.
+
+    As we discussed in \autoref{section:calling conventions}, there are various calling conventions that are commonly used (e.g. cdecl is the default calling convention in C++). However, compilers have total freedom in deciding how arguments are passed to a function in assembly and compilers for different programming languages often use custom calling conventions.
+
+    The two important characteristics that differentiate calling conventions from one another are how arguments are passed and how the memory is cleaned up after the function call has finished. If we can discover how these two characteristics are implemented for a function call, we determine what calling convention is used.
+
+    \item If we know the calling convention, we know how arguments are passed to the callee and in what order they are passed.
+
+    We can use this information to backtrack from the \texttt{call} instruction and detect instructions that place data in the locations (i.e. registers or the stack) that are used to pass the arguments.
+
+    For example, if we know that an argument is passed via the \texttt{ecx} register, we will look for instructions that store data in the \texttt{ecx} register.
+
+    However, as arguments can be computed at runtime and compilers optimize memory usage, it is often impossible to reconstruct an argument.
+\end{enumerate}
+
+\subsubsection{An Example of Decompiling a Function Call}
+Let's look at an example of decompiling a function call. \autoref{listing:call address sum} shows a simple example of a function call (to call the \texttt{sum} function in \autoref{listing:sum function}).
+
+\begin{minipage}{0.9\textwidth}
+\begin{lstlisting}[label={listing:call address sum}, caption={The C and assembly code of a function that calls \autoref{listing:sum function} (using cdecl).}, captionpos=b]
+int main() {            push    ebp
+    int x = 1;          mov     ebp, esp
+    int y = 2;          sub     esp, 8
+    return sum(x, y);   mov     [ebp - 8], 1
+}                       mov     [ebp - 4], 2
+                        mov     eax, [ebp - 4]
+                        push    eax
+                        mov     ecx, [ebp - 8]
+                        push    ecx
+                        call    <address>
+                        add     esp, 8
+                        mov     esp, ebp
+                        pop     ebp
+                        retn
+\end{lstlisting}
+\end{minipage}
+
+\medskip
+
+The first step is to determine the calling convention. We do this by answering how arguments are passed and whether the callee or the caller cleans up the stack.
+
+How are arguments passed? In the instructions right before the \texttt{call instruction}, from lines 4 to 9, we see that two integers (\texttt{1} on line 4 and \texttt{2} on line 5) are pushed to the stack. This is a good indication that either cdecl or stdcall are used.
+
+Does the callee or the caller clean up the stack? Right after the function call, on line 11, we see that the stack pointer is reduced by 8 bytes (the size of two integers). This tells us that the \texttt{main} function (i.e. the caller) cleans up the stack. A common calling convention that requires the caller to clean up the stack after a function call is cdecl.
+
+By answering these two questions, we have determined that the calling convention cdecl is most likely used.
+
+\medskip
+
+The second step is to find the arguments that are passed to the function. As we noted earlier, we see that two integers are pushed to the stack (in the instructions on lines 4 to 9). Backtracking from the call signature, we first encounter 2 being pushed on the stack and after that we encounter 1 being pushed on the stack.
+
+This tells us what the function call looks like \texttt{?(1, 2)}. The only part that we do not know is the function name. And because compilers often do not use function names from source code, we will not be able to reconstruct the function name.
+
+If a callee is not part of the binary itself, but available in a library, the name might be available. We will discuss this in more detail in \autoref{section:dlls}.

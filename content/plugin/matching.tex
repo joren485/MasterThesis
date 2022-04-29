@@ -1,0 +1,25 @@
+\section{Call Signature Matching}\label{section:matching function call call signatures}
+For a function call to match a Call Signature, each of the rules in the Call Signature should succeed.
+
+As discussed in \autoref{section:call signature rules}, a rule is a constraint on a function call element (e.g. the function name). A rule can either succeed (i.e. the values match) or fail (i.e. the values do not match).
+
+CSP iterates through each rule in a Call Signature and compares the constraint in the rule with the value of the relevant function call element.
+
+The values of function call elements are often unknown, as information is lost during compilation (e.g. function names are not available in binaries) or determined at runtime (e.g. arguments passed by reference). Whether the value of the function call element is known, determines how the rule is applied to the function call element. The matching algorithm covers multiple situations:
+\begin{itemize}
+    \item If the rule specifies a constraint on a value and the function call element value is known, the values are compared using the operator specified in the rule.
+
+    \item If the rule specifies a constraint on a type and the function call element value is known, the rule succeeds if the type of the function call element value equals the type specified in the rule.
+
+    \item If the function call element value is not known, the result depends on the function call element:
+
+    \begin{itemize}
+        \item If the function call element is the function name, the rule succeeds.
+
+        Because the disassembler can often not determine which function is being called (e.g. because the call is indirect), the function name is frequently unknown. To prevent many false negatives with rules that define a constraint on the function name, the rule succeeds.
+
+        \item If the function call element is a specific argument or any argument, the rule fails.
+
+        The decompiler will not be able to determine the value of the majority of arguments passed in function calls (most often because the value is computed at runtime). To prevent too many false positives, the rule fails if the argument value is unknown.
+    \end{itemize}
+\end{itemize}

@@ -1,0 +1,88 @@
+\section{Registry-based Persistence Techniques}\label{section:call signatures rp}
+In this section, we will discuss Call Signatures for \autoref{RP0}, a technique that writes to (a subkey of) the Registry key \path{HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run}.
+
+As we saw in \autoref{section:background windows registry}, there are two common ways for applications to modify the Registry, namely the Windows API and the \texttt{reg.exe} command-line application.
+
+\subsection{Modifying the Registry via the API}
+
+To set the value in a Registry key using the Windows API, an application first needs to (create or) open it using one of the following functions (as seen in the examples in \autoref{appendix:source code run time linking}):
+\begin{multicols}{2}
+  \begin{itemize}
+      \item \texttt{RegCreateKey}
+      \item \texttt{RegCreateKeyEx}
+      \item \texttt{RegOpenKey}
+      \item \texttt{RegOpenKeyEx}
+  \end{itemize}
+\end{multicols}
+
+All of these functions work similarly. The first argument takes a constant that specifies the root key. For example, the constant \texttt{0x80000001} represents \texttt{HKCU}. The second argument specifies the path of the key.
+
+To detect \autoref{RP0} we need to find a call to a function where the first parameter is \texttt{0x80000001} and the second argument contains ``\path{SOFTWARE\Microsoft\Windows\CurrentVersion\Run}''. \autoref{listing:call signature run key windows api} is a Call Signature for such calls.
+
+\begin{lstlisting}[label={listing:call signature run key windows api}, caption={A Call Signature for \autoref{RP0}.}, captionpos=b]
+---
+
+signature:
+  technique: "RP0"
+  description: >
+      This Call Signature can be used to
+      search for calls to RegCreateKey or RegOpenKey,
+      that are used to implement RP0.
+  rules:
+      - element: "function name"
+        contains_in:
+          - "RegCreateKey"
+          - "RegOpenKey"
+
+      - element: "number of arguments"
+        equals: 3
+
+      - element: "argument"
+        argument_index: 0
+        equals: 0x80000001
+
+      - element: "argument"
+        argument_index: 1
+        contains: "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+\end{lstlisting}
+
+\subsection{Modifying the Registry via Reg.exe}
+To modify the Windows Registry using \texttt{reg.exe}, one needs to run \texttt{reg.exe} (or just \texttt{reg}) command with \texttt{add} as the first argument. For example, the Windows command in \autoref{listing:reg.exe example command}.
+
+\begin{lstlisting}[label={listing:reg.exe example command}, caption={A Windows Command that implements \autoref{RP0}.}, captionpos=b]
+  reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v WindowsUpdate /t REG_SZ /d "C:\Users\John\windowsupdate.exe"
+\end{lstlisting}
+
+To match all situations in which such a command is used to implement \autoref{RP0}, we are looking for the strings with the following substrings:
+\begin{itemize}
+  \item ``reg''
+  \item ``add''
+  \item ``HKCU'' or ``HKEY\_CURRENT\_USER''
+  \item ``\path{SOFTWARE\Microsoft\Windows\CurrentVersion\Run}''
+\end{itemize}
+
+As these strings will not always be part of the same argument, we need a Call Signature that has rules for each of them, separately. \autoref{listing:call signature run key reg.exe} does this.
+
+\begin{lstlisting}[label={listing:call signature run key reg.exe}, caption={A Call Signature for \autoref{RP0}.}, captionpos=b]
+---
+
+signature:
+  technique: "RP0"
+  description: >
+      This Call Signature can be used to search for
+      usage of reg.exe commands, that implement RP0.
+  rules:
+      - element: "any argument"
+        contains: "reg"
+
+      - element: "any argument"
+        contains: "add"
+
+      - element: "any argument"
+        contains_in:
+          - "HKCU"
+          - "HKEY_CURRENT_USER"
+
+      - element: "any argument"
+        contains: "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+\end{lstlisting}

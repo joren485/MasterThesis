@@ -1,0 +1,5 @@
+*       text=auto
+*.png   binary
+*.pdf   binary
+*.exe_  binary
+spellright.dict binary

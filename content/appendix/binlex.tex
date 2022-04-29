@@ -1,0 +1,67 @@
+\chapter{Finding Common Traits Using Binlex}\label{appendix:binlex experiment}
+At the beginning of this research, we tried to detect persistence in malware binaries with Binlex\footnote{\tiny \url{https://github.com/c3rb3ru5d3d53c/binlex}}, a static analysis tool that interprets binaries as a sequence of bytes. This experiment taught us that we need to look more semantically at the instructions in binaries to detect their functionality.
+
+\medskip
+
+Binlex extracts \emph{traits} from binaries. A trait is a function or a basic block, with the memory operands of each instruction removed. For example, the two instructions shown in \autoref{listing:example assembly basic block} result in the trait ``\texttt{33 c0 ff 15 ?? ?? ?? ??}''. As we can see, the trait contains the same bytes as the original basic block, but the address operand of the \texttt{call} instruction is replaced by wildcard characters.
+
+\begin{lstlisting}[captionpos=b, caption={An example of a basic block made up of two instructions.}, label={listing:example assembly basic block}]
+    33 c0                   xor eax, eax
+    ff 15 d8 60 40 00       call 0x4060d8
+\end{lstlisting}
+
+We wanted to see whether it is possible to use Binlex to find common traits in two samples that implement the same persistence technique. If this is possible, we can search for the traits relevant to a persistence technique in other malware binaries to detect the technique.
+
+We found two malware samples that implement \autoref{RP3}. Their SHA-256 hashes are available in \autoref{appendix:hashes binlex}.
+
+We manually analyzed \texttt{Lab06-03.exe\_} in IDA Pro to understand how it implements the persistence technique. \autoref{listing:regkey persistence assembly} shows the basic block that executes the Windows API functions \texttt{RegOpenKeyEx} and \texttt{RegSetValueEx} to write to the registry for persistence.
+
+\begin{minipage}{0.9\textwidth}
+\begin{lstlisting}[captionpos=b, caption={A basic block, dissassembled by IDA Pro, that implements \autoref{RP3}.}, label={listing:regkey persistence assembly}]
+lea     ecx, [ebp+phkResult]
+push    ecx             ; phkResult
+push    0F003Fh         ; samDesired
+push    0               ; ulOptions
+push    offset SubKey   ; "Software\\Microsoft\\Windows"...
+push    80000002h       ; hKey
+call    ds:RegOpenKeyExA
+push    0Fh             ; cbData
+push    offset Data     ; "C:\\Temp\\cc.exe"
+push    1               ; dwType
+push    0               ; Reserved
+push    offset ValueName ; "Malware"
+mov     edx, [ebp+phkResult]
+push    edx             ; hKey
+call    ds:RegSetValueExA
+test    eax, eax
+jz      short loc_4011D2
+\end{lstlisting}
+\end{minipage}
+
+\autoref{listing:regkey persistence trait} shows the Binlex trait that corresponds to the basic block in \autoref{listing:regkey persistence assembly}.
+
+\begin{lstlisting}[captionpos=b, caption={The Binlex trait corresponding to the assembly in \autoref{listing:regkey persistence assembly}.}, label={listing:regkey persistence trait}]
+    8d 4d ??
+    51
+    68 3f 00 0f 00
+    6a 00
+    68 70 71 40 00
+    68 02 00 00 80
+    ff 15 ?? ?? ?? ??
+    6a 0f
+    68 a0 71 40 00
+    6a 01
+    6a 00
+    68 68 71 40 00
+    8b 55 ??
+    52
+    ff 15 00 ?? ?? ??
+    85 c0
+    74 0d
+\end{lstlisting}
+
+Our goal was to find a trait that is similar to \autoref{listing:regkey persistence trait} in the other binary. Unfortunately, there are only 29 common traits, and they are small (7 bytes at most). None of them resembled (or were part of) \autoref{listing:regkey persistence assembly}. This tells us that the common traits have nothing to do with the persistence technique, but are either common in general or are coincidentally in both binaries.
+
+Even though the samples implement \autoref{RP3} similarly (e.g. they both use \texttt{RegOpenKeyEx} and \texttt{RegSetValueEx} without any obfuscation), their implementations differ too much to find any common basic blocks. If such similar implementations do not have any common traits, binaries that use vastly different implementations (e.g. by using different API calls or a more complex call structure) will not have any common traits either. This shows us that purely looking at byte sequences will not capture the relationships in the binaries we are looking for.
+
+Although Binlex does not seem to be the right tool for our research purposes, it is a valuable tool in detecting code re-use in (malware) binaries. If two malware binaries have many common (larger) traits, it is a good indication that they share code. This is valuable during analysis, as it links the two malware samples (e.g. it may indicate that they have been written by the same author).

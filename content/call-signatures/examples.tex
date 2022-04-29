@@ -1,0 +1,136 @@
+\section{Examples of Call Signatures}\label{section:call signatures examples}
+Let's look at an example of how to write Call Signatures. In \autoref{listing:sum and add10 function}, we see two simple C functions, \texttt{sum} and \texttt{add10}.
+
+\begin{lstlisting}[label={listing:sum and add10 function}, caption={Two C functions.}, captionpos=b]
+int sum(int a, int b){
+    return a + b;
+}
+
+int add10(int a){
+    return sum(10, b);
+}
+\end{lstlisting}
+
+Given these functions, we have two techniques to add the number 10 to another integer:
+\begin{itemize}
+    \item \textbf{Add10}: Calling the \texttt{add10} function with an integer as its argument.
+
+    \item \textbf{AddSum}: Calling the \texttt{sum} function with 10 as one of its arguments.
+\end{itemize}
+
+Let's say we want to search for these two techniques in a binary. We can use Call Signatures for this.
+
+In \autoref{section:examples searching function calls using Call Signatures} we will expand upon this example, by looking at how to search for function calls using these Call Signatures.
+
+\paragraph{Writing a Call Signature for Add10}
+
+We know that calls to \texttt{add10} have the following specific properties that we can write rules for:
+\begin{itemize}
+    \item The function name is ``\texttt{add10}''. We need a rule that constrains the function name in the function call to ``\texttt{add10}'':
+\begin{lstlisting}[captionpos=b]
+- element: "function name"
+  equals: "add10"
+\end{lstlisting}
+
+    \item The function call has one argument, which we can constrain using a rule for the number of arguments:
+\begin{lstlisting}[captionpos=b]
+- element: "number of arguments"
+  equals: 1
+\end{lstlisting}
+
+    \item The argument is an integer. Which we can capture in the following rule:
+\begin{lstlisting}[captionpos=b]
+- element: "argument"
+  argument_index: 0
+  type: "number"
+\end{lstlisting}
+
+\end{itemize}
+
+Combining all the above rules gives us the Call Signature in \autoref{listing:call signature add10}:
+\begin{lstlisting}[label={listing:call signature add10}, caption={A Call Signature for \texttt{add10}.}, captionpos=b]
+---
+
+signature:
+    technique: "Add10"
+    description: >
+        This Call Signature can be used to
+        search for calls to add10.
+    rules:
+        - element: "function name"
+          equals: "add10"
+
+        - element: "number of arguments"
+          equals: 1
+
+        - element: "argument"
+          argument_index: 0
+          type: "number"
+\end{lstlisting}
+
+
+\paragraph{Writing a Call Signature for AddSum}
+
+Function calls to \texttt{sum} that implement AddSum (i.e. that add 10 to another integer) are similar to those of \texttt{add10}, but in \texttt{sum} either argument can be 10. We use the following rules to constraint each property of such calls:
+\begin{itemize}
+    \item The function name is ``\texttt{sum}''. We can use the following rule for this:
+\begin{lstlisting}[captionpos=b]
+- element: "function name"
+  equals: "sum"
+\end{lstlisting}
+
+    \item The function call has two arguments, which we can constrain using a rule for the number of arguments:
+\begin{lstlisting}[captionpos=b]
+- element: "number of arguments"
+  equals: 2
+\end{lstlisting}
+
+    \item The first argument is an integer:
+\begin{lstlisting}[captionpos=b]
+- element: "argument"
+  argument_index: 0
+  type: "number"
+\end{lstlisting}
+
+\item The second argument is an integer:
+\begin{lstlisting}[captionpos=b]
+- element: "argument"
+  argument_index: 1
+  type: "number"
+\end{lstlisting}
+
+\item One of the arguments is 10. We can define a rule over all arguments (i.e. that succeeds if at least one argument matches), by using the \texttt{any argument} function call element:
+\begin{lstlisting}[captionpos=b]
+- element: "any argument"
+  equals: 10
+\end{lstlisting}
+
+\end{itemize}
+
+Combining all the above rules gives us the Call Signature in \autoref{listing:call signature sum}:
+\begin{lstlisting}[label={listing:call signature sum}, caption={A Call Signature for \texttt{sum}.}, captionpos=b]
+---
+
+signature:
+    technique: "AddSum"
+    description: >
+        This Call Signature can be used to
+        search for calls to sum.
+    rules:
+        - element: "function name"
+          equals: "sum"
+
+        - element: "number of arguments"
+          equals: 2
+
+        - element: "argument"
+          argument_index: 0
+          type: "number"
+
+        - element: "argument"
+          argument_index: 1
+          type: "number"
+
+        - element: "any argument"
+          equals: 10
+\end{lstlisting}

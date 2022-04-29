@@ -1,0 +1,52 @@
+\subsection{Experiments}
+To compare the detection performance of CSP (with Call Signatures) and Capa (with Capa rules), we run the same experiments from \autoref{section:real-world experiments} using Capa:
+
+\begin{itemize}
+  \item We try to detect \autoref{RP0} in dataset RP, using Capa and the ``persist via Run registry key''\footnote{Some Capa rules describe more than one persistence technique. For example, \autoref{listing:capa rule} describes both \autoref{DP0} and \autoref{DP1}. To address this, we parse the output of Capa to make sure only the relevant elements are present.} Capa rule\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/persistence/registry/run/persist-via-run-registry-key.yml}}.
+
+  \item We try to detect \autoref{DP0} in dataset DP, using Capa and the ``get startup folder'' Capa rule\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/persistence/startup-folder/get-startup-folder.yml}}.
+
+  \item We try to detect \autoref{SP0} in dataset SP, using Capa and the ``persist via Windows service'' Capa rule\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/persistence/service/persist-via-windows-service.yml}}.
+
+  \item We try to detect \autoref{TP0} in dataset TP, using Capa and the ``schedule task via ITaskScheduler''\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/persistence/scheduled-tasks/schedule-task-via-itaskscheduler.yml}}, ``schedule task via command line''\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/persistence/scheduled-tasks/schedule-task-via-command-line.yml}}, and ``schedule task via ITaskService''\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/nursery/schedule-task-via-itaskservice.yml}} Capa rules.
+\end{itemize}
+
+It is important to note that we are technically making two comparisons here: how well Call Signatures and Capa rules can describe persistence techniques and how well CSP and Capa can detect persistence techniques using Call Signatures and Capa rules, respectively.
+
+\medskip
+
+\autoref{table:experiment capa comparison} shows the same table as \autoref{table:experiment real-world results} with an additional column that shows the number of detected samples by Capa for each dataset.
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{l|lll}
+      \hline
+      Dataset     & Total Samples & CSP           & Capa          \\ \hline
+      Dataset RP  & 162           & 115 (70.99\%) & 112 (69.14\%) \\ \hline
+      Dataset DP  & 134           & 134 (100\%)   & 134 (100\%)   \\ \hline
+      Dataset SP  & 133           & 129 (96.99\%) & 121 (90.98\%) \\ \hline
+      Dataset TP  & 28            & 19  (67.86\%) & 18  (94.74\%) \\ \hline
+  \end{tabular}
+  \caption{The number of matches per dataset by CSP compared with the matches by Capa.}
+  \label{table:experiment capa comparison}
+\end{table}
+
+As we can see, CSP and Capa perform similarly, but Capa performs slightly worse on three of the four datasets. As Call Signatures are more precise than Capa rules (discussed in \autoref{section:differences call signatures and capa rules}), we would expect CSP to detect fewer samples than Capa. It is surprising to see that Capa detects slightly fewer samples than CSP.
+
+\medskip
+
+Further analysis of the samples that were detected by CSP and not by Capa shows that the difference in matches can be explained by the second and third differences in \autoref{section:differences call signatures and capa rules} (i.e. CSP detecting indirect calls and differences in the rules):
+
+\begin{itemize}
+  \item The Capa rule for \autoref{RP0} does not fully cover opening Registry keys from the command line (discussed in \autoref{section:background windows registry}).
+
+  \item The Capa rule for \autoref{SP0} does not fully cover creating Windows Services from the command line (discussed in \autoref{section:background windows registry}).
+
+  \item Capa did not detect all calls to \texttt{CreateService} (the API function used in \autoref{SP0}), because the calls were made indirectly.
+
+  \item The Capa rules for \autoref{TP0} do not cover creating a Scheduled Task from the command line via \texttt{at.exe} (discussed in \autoref{section:call signatures tp}).
+
+  \item Capa did not detect all calls to \texttt{CoCreateInstance} (the API function used in \autoref{TP0}), because the calls were made indirectly.
+\end{itemize}
+
+Most of these problems can be solved by adding new or modifying existing Capa rules and are not a fundamental limitation of Capa rules or Capa However, this does show the importance of having a well-defined taxonomy of techniques and to not rely on function names.

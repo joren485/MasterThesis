@@ -1,0 +1,28 @@
+\chapter{Related Work}\label{chapter:related work}
+Analyzing the functionality of binaries (without running them) is an active field of research with multiple approaches. An important driver for analyzing the functionality of binaries is malware analysis, as malware authors are actively trying to circumvent existing analysis techniques.
+
+\medskip
+
+A common way to detect and classify malware functionality is to look for code reuse between a potential malware sample and known malware samples. Because the source code of malware binaries is generally not available, assessing code reuse requires a similarity analysis of the binaries.
+
+Haq and Caballero survey research on the similarity of binary code \cite{similarity-binary-code}. The research they survey focuses on semantic similarity, considering two binaries equivalent if they provide the same exact functionality. For example, a call graph-based approach by Lee et al. \cite{binary-similarity-call-graph} and BinSim by Ming et al. \cite{binsim} uses symbolic execution to analyze the logic in a binary. As there are countless ways to implement functionality, checking for semantic similarity is a complex process. To make matters worse, malware often implements obfuscation techniques to hide its functionality.
+
+Other code reuse research looks at binaries as sequences of bytes. The general hypothesis being that similar source code results in similar compiled byte sequences. A popular technique is fuzzy-hashing: computing multiple hashes on sections of two inputs to find similar sections in the inputs \cite{piecewise-hashing}. For example, the research by Naik et al. \cite{fuzzy-import-hashing} and Namanya et al. \cite{fuzzy-hashing-combinational}. In \autoref{appendix:binlex experiment} we see a weakness of such approaches: similar code can be compiled into vastly different binary code.
+
+\medskip
+
+Machine learning is also being used to detect malicious functionality. As executable binaries are very complex data structures, either the neural network that is used to analyze the binaries needs to understand the general structure of such binaries or, pre-processing needs to take place to extract useful features to use in a neural network. For example, Raff et al. \cite{eat-exe} and Massarelli et al. \cite{safe} opt for the former approach and Xu et al. \cite{gemini} for the latter.
+
+\medskip
+
+Many reverse engineering tools implement a database of commonly inlined functions (e.g. standard library functions). The most well-known being F.L.I.R.T. (Fast Library Identification and Recognition Technology) in IDA Pro \cite{flirt}. Other examples are Function ID in Ghidra \cite{ghidra-fid} and Talos FIRST (Function Identification and Recover Signature Tool) \cite{talos-first}. The goal of these databases is to find known (uninteresting) functions. This tells malware analysts, for example, which functions to skip when they are reverse engineering a malware sample. They work by creating signatures of commonly inlined functions (often the first 32 bytes of the function). Functions in a binary can be checked against these signatures.
+
+\medskip
+
+The methodology we present in \autoref{chapter:call signatures} uses patterns to search for elements of interest (i.e. function calls) in a binary. In recent years there have been similar approaches. For example, FindFunc\footnote{\tiny \url{https://github.com/FelixBer/FindFunc}}, a tool that allows for advanced searching of byte patterns in binaries.
+
+Pattern matching is also used in source code analysis. For example, software that searches for common vulnerabilities in code (e.g. Semgrep\footnote{\tiny \url{https://semgrep.dev/}}, CodeQL\footnote{\tiny \url{https://codeql.github.com/}}, and Weggli\footnote{\tiny \url{https://github.com/googleprojectzero/weggli/}}) define patterns that describe these vulnerabilities to search for in the code.
+
+\medskip
+
+Most similar to our research is Capa by Mandiant\footnote{\tiny \url{https://github.com/mandiant/capa}}. It identifies a broad spectrum of capabilities (e.g. cryptography, persistence, communication, and anti-analysis) in malware binaries. They define capabilities as rules of strings, byte sequences, and operating system API calls (similar to Yara signatures) that need to be present in functions. If all elements of a rule are present in a function, the sample is considered to have the capability that the rule defines. Unlike our research, their approach does not define a relation between the different elements that need to be present, which may cause false positives. We compare our work with Capa in \autoref{chapter:experiments}.

@@ -1,0 +1,41 @@
+\subsection{Scheduled Tasks \& Services}\label{section:scheduled tasks services in windows}
+Windows supports running processes in the background without user interaction. This is useful for processes that should always be active, but do not require user interaction (e.g. antivirus software or hardware drivers). As we will see in \autoref{section:service-based persistence} and \autoref{section:scheduled task-based persistence}, malware also uses background tasks for persistence.
+
+A Windows service\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/services/services}} is a process that is started automatically when a Windows system is started (or other another Windows event happens) and runs in the background. Services can run even before a user has logged in, because they can run under the privileges of special system users.
+
+Scheduled Tasks\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page}} are similar to services. A scheduled task starts an application at a specific event (e.g. when a user logs in), at a pre-defined time, or on a repeating schedule, without any user interaction.
+
+Services and Scheduled Tasks can run as any user account. However, as some services need to run even when no user is logged in, they can also run as one of three special accounts\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/services/service-user-accounts}}:
+\begin{itemize}
+    \item \texttt{LocalService}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/services/localservice-account}}: An account with minimal privileges.
+
+    \item \texttt{NetworkService}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/services/networkservice-account}}: An account with minimal privileges with permission to authenticate to remote servers.
+
+    \item \texttt{LocalSystem}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/services/localsystem-account}}: An account with full privileges on the local machine. This account is especially interesting to malware, as it grants full control of the machine.
+\end{itemize}
+
+Creating a service or scheduled task requires Administrator privileges, as they can be started using the \texttt{LocalSystem} user, which grants full control of the host.
+
+\subsubsection{Creating Services}
+There are multiple ways to create a service:
+\begin{itemize}
+    \item Windows provides a GUI (called ``Services'') that Administrator users can use to create, list, and modify services.
+
+    \item The Windows API provides a function to create a Windows service: \texttt{CreateService}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-createservicea}}.
+
+    \item Windows provides a command-line application (\texttt{sc.exe}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/services/configuring-a-service-using-sc}}) that allows users with Administrator privileges to create services from the command line.
+
+    \item Like most configuration settings on Windows, the configuration of services is stored in the Registry. The configuration of services is stored in the key \path{HKLM\SYSTEM\CurrentControlSet\services}.
+\end{itemize}
+
+\subsubsection{Creating Scheduled Tasks}
+There are multiple ways to create scheduled tasks in Windows:
+\begin{itemize}
+    \item The Windows Task Scheduler is a GUI interface that Administrator users can use to create, list, and modify scheduled tasks.
+
+    \item It is possible to create a scheduled task with the Windows API\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/taskschd/daily-trigger-example--c---}}. To do this, one first needs to connect to the service used by the Scheduled Tasks. This is done using the \texttt{CoCreateInstance}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance}} function. This function is called with \texttt{CLSID\_TaskScheduler} as its first argument and \texttt{IID\_ITaskService} as its fourth.
+
+    \item \texttt{schtasks.exe}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/taskschd/schtasks}} is a command-line application that allows users with Administrator privileges to create Scheduled Tasks from the command line.
+
+    \item The predecessor of \texttt{schtasks.exe} is \texttt{at.exe}\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/at}}. It works similarly to \texttt{schtasks.exe}, in that it can be used to create Scheduled Tasks from the command line. Although it is deprecated, it is still available.
+\end{itemize}

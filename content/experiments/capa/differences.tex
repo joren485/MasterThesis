@@ -1,0 +1,18 @@
+\subsection{The Differences Between Call Signatures \& Capa Rules}\label{section:differences call signatures and capa rules}
+Call Signatures and CSP are similar to Capa. They both search for pre-defined patterns in a binary. However, they do have some nuanced, but fundamental differences. In our opinion, the three most important differences are:
+
+\begin{enumerate}
+  \item The scope they operate on: Call Signatures and Capa rules are defined over a different scope. Call Signatures are defined over function calls, while Capa rules are defined over basic blocks, functions, or binaries (which can contain multiple function calls). Because Call Signatures use a smaller scope, we can say that Call Signatures are more precise (i.e. more restrictive) than Capa rules.
+
+  We discuss the practical implications of this difference in detail in \autoref{section:capa false positives}.
+
+  \item Being able to detect indirect function calls: CSP is able to find indirect function calls (i.e. calls where the function address is computed at runtime), while Capa is not.
+
+  For example, if a malware sample implements \autoref{DP0} by calling \texttt{SHGetFolderPath} indirectly, the decompiled function call might look \texttt{?(?, 0x07, ?, ?, ?)}. Capa (using the Capa rule in \autoref{listing:capa rule}) will not detect this function call, because it does not see a call to \texttt{SHGetFolderPath}. However, CSP (using a Call Signature from \autoref{section:call signatures dp}) is able to detect this call, because it does not require the function name to be known (discussed in \autoref{section:matching function call call signatures}) and sees that the second argument is \texttt{0x07}.
+
+  \item The taxonomy of techniques: In \autoref{chapter:call signatures for persistence techniques}, we use the clear taxonomy we laid out in \autoref{chapter:persistence techniques} to write a Call Signature for each technique we want to be able to detect.
+
+  Capa does not provide such a taxonomy, making it unclear which Capa rules cover which techniques. This can result in Capa rules describing multiple techniques or techniques not being covered by any Capa rule.
+
+  \autoref{listing:capa rule} is a good example of one Capa rule covering multiple techniques. If the ``get startup folder'' Capa rule results in a match, we know that the malware uses a startup directory to achieve persistence. However, we do not know which directory, because the ``get startup folder'' Capa rule is used to detect both \autoref{DP0} and \autoref{DP1}.
+\end{enumerate}

@@ -1,0 +1,21 @@
+\begin{abstract}\label{chapter:abstract}
+    Incidents like the ransomware attack on the Colonial Pipeline in 2021 \cite{pipeline-attack} show that malware is a growing threat with real-world implications. To combat this growing threat, there is an ever-growing need for (automated) malware analysis tools.
+
+    \medskip
+
+    Meaningful actions by applications (including malware) require interaction with the operating system. Operating systems facilitate this by providing an API. Malicious activity is often implemented via calls to this API. Such calls can be seen as an indicator of the malicious activity.
+
+    As most malware is written for Windows \cite{windows-malware}, we focus on Windows and the Windows API.
+
+    \medskip
+
+    In this thesis, we present a method to detect malware capabilities by searching for specific function calls with specific arguments. This method consists of two steps: (1) describing the function calls that are used to implement a capability as patterns, including the arguments that are passed to such functions, and (2) searching for these patterns in malware binaries.
+
+    For the first step, we provide patterns to describe function calls: \emph{Call Signatures}. For the second step, we developed an IDA Pro plugin, called Call Signatures Plugin (\emph{CSP}), that uses Call Signatures to search for function calls in a binary. This plugin is available at \url{https://github.com/joren485/CallSignaturesPlugin}.
+
+    \medskip
+
+    To showcase the effectiveness of detecting capabilities with Call Signatures and CSP, we perform an experiment where we use them to detect a capability that is commonly implemented by malware: \emph{persistence}. Persistence is the class of techniques that malware use to maintain access to a victim system after an initial infection. We provide an overview of common persistence techniques and the function calls that are required to implement these techniques. We express these function calls, including their arguments, as Call Signatures and then use CSP to search for these techniques in a dataset of real-world malware samples.
+
+    The outcome of this experiment shows that function calls can be an effective indicator for detecting malware capabilities. We also show that Call Signatures and CSP perform well compared to existing tooling.
+\end{abstract}

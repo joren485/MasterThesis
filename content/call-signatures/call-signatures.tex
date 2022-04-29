@@ -1,0 +1,169 @@
+\section{The Syntax of Call Signatures}\label{section:call signatures syntax}
+We write Call Signatures in YAML\footnote{\tiny \url{https://yaml.org/}}, a popular format in software development because it is easily readable by both humans and code.
+
+\autoref{listing:example call signature} shows an example of a Call Signature that can be used to search for function calls used in a Registry-based persistence technique. We will discuss the persistence technique in more detail in \autoref{section:registry-based persistence}.
+
+In essence, the example in \autoref{listing:example call signature} describes the following two possible function calls:
+\begin{itemize}
+  \item \texttt{RegCreateKey(0x80000001, "\path{SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run}", ?)}
+  \item \texttt{RegOpenKey(0x80000001, "\path{SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run}", ?)}
+\end{itemize}
+
+\begin{minipage}{0.9\textwidth}
+\begin{lstlisting}[label={listing:example call signature}, caption={An example Call Signature. Colors are added for clarity.}, captionpos=b, backgroundcolor={}, escapeinside={\%*}{*}]
+---
+
+%*\colorbox{ProcessBlue}{signature}*:
+  %*\colorbox{YellowGreen}{technique: "RP0"}*
+  %*\colorbox{YellowGreen}{description: >}*
+      %*\colorbox{YellowGreen}{This Call Signature can be used to}*
+      %*\colorbox{YellowGreen}{search for calls to RegCreateKey or RegOpenKey,}*
+      %*\colorbox{YellowGreen}{that are used to implement RP0.}*
+  %*\colorbox{Goldenrod}{rules:}*
+      %*\colorbox{Goldenrod}{- element: "function name"}*
+        %*\colorbox{Goldenrod}{contains\_in:}*
+          %*\colorbox{Goldenrod}{- "RegCreateKey"}*
+          %*\colorbox{Goldenrod}{- "RegOpenKey"}*
+
+      %*\colorbox{Goldenrod}{- element: "number of arguments"}*
+        %*\colorbox{Goldenrod}{equals: 3}*
+
+      %*\colorbox{Goldenrod}{- element: "argument"}*
+        %*\colorbox{Goldenrod}{argument\_index: 0}*
+        %*\colorbox{Goldenrod}{equals: 0x80000001}*
+
+      %*\colorbox{Goldenrod}{- element: "argument"}*
+        %*\colorbox{Goldenrod}{argument\_index: 1}*
+        %*\colorbox{Goldenrod}{contains: "\path{SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run}"}*
+\end{lstlisting}
+\end{minipage}
+
+This example in \autoref{listing:example call signature} shows the general structure of a Call Signature:
+\begin{itemize}
+  \item The three dashes at the top signify the start of a YAML file.
+
+  \item In blue, we see \texttt{signature} All parts of the Call Signature fall under this YAML key.
+
+  \item In green, we see two keys that give some descriptive information about the Call Signature. First, we see a \texttt{technique} key, that allows us to link this Call Signature to a specific technique (i.e. from \autoref{chapter:persistence techniques}). Secondly, we see a \texttt{description} key that allows us to describe what the Call Signature is looking for.
+
+  \item In yellow, we list of rules under the \texttt{rules} key. In \autoref{section:call signature rule structure}, we will discuss what each detail of a rule means.
+\end{itemize}
+
+\subsection{Rules}\label{section:call signature rules}
+A rule defines a constraint on either the \emph{value} or the \emph{type} of a function call element. It consists of the following:
+\begin{itemize}
+  \item The function call element that it constrains.
+  \item Either one of:
+    \begin{itemize}
+      \item The type that the function call element should be.
+
+      \item A value and an operator that should be compared to the function call element.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{The Syntax of Rules}\label{section:call signature rule structure}
+In \autoref{listing:example call signature}, we saw how rules fit into the larger structure of a Call Signature. In this section, we will go into detail about each part of a rule. In \autoref{listing:example call signature rule value}, and \autoref{listing:example call signature rule type} we see two (color-coded) examples of rules. \autoref{listing:example call signature rule value} is a rule that defines a constraint on a value and \autoref{listing:example call signature rule type} is a rule that defines a constraint on a type.
+
+\begin{minipage}[t]{0.40\textwidth}
+\begin{lstlisting}[label={listing:example call signature rule value}, caption={An example rule defining a constrains on a value.}, captionpos=b, backgroundcolor={}, escapeinside={\%*}{*}]
+- %*\colorbox{YellowGreen}{element: "function name"}*
+  %*\colorbox{Goldenrod}{contains}*: %*\colorbox{Orange}{"RegOpenKey"}*
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.50\textwidth}
+\begin{lstlisting}[label={listing:example call signature rule type}, caption={An example rule defining a constrains on a type.}, captionpos=b, backgroundcolor={}, escapeinside={\%*}{*}]
+- %*\colorbox{YellowGreen}{element: "number of arguments"}*
+  %*\colorbox{ProcessBlue}{type: "number"}*
+\end{lstlisting}
+\end{minipage}
+
+\begin{itemize}
+  \item In both rules, we first see a key value pair with an \texttt{element} key, in green. This key defines which function call element the rule defines a constraint on.
+
+  \item In yellow, we see the operator (i.e. \texttt{contains}) and, in orange, we see the value that the operator should compare with the value of the function call element. This defines that ``RegOpenKey'' should be a substring of the function name (i.e. the function call element that the rule is about)
+
+  \item In blue, we see a key-value pair that defines the type (in this case number) that the function call element (in this case the number of arguments) should have.
+\end{itemize}
+
+\subsubsection{Function Call Elements}
+Function calls consist of multiple elements (i.e. the function name, the number of arguments, and each argument). To be able to define constraints on all these elements, the \texttt{element} key in a rule can have the following values:
+\begin{itemize}
+  \item \texttt{function name}: The function name. \autoref{listing:example call signature rule value} shows an example of such a rule.
+
+  \item \texttt{number of arguments}: The number of arguments that are passed to the function. \autoref{listing:example call signature rule type} shows an example of a rule constraining the number of arguments.
+
+  \item \texttt{argument}: A specific argument, passed to the function=. This requires an additional \texttt{argument\_index} YAML key to specify which argument the rule applies to.  The first argument has the index 0 and the arguments are ordered from left to right. For example, \autoref{listing:example call signature rule argument} shows a rule that specifies that the second argument should be a string.
+
+\begin{lstlisting}[label={listing:example call signature rule argument}, caption={An example rule defining a constrains on the second argument.}, captionpos=b]
+- element: "argument"
+  argument_index: 1
+  type: "string"
+\end{lstlisting}
+
+  \item \texttt{any argument}: With this function call element, the rule does not apply to a specific argument, but all arguments. In other words, the constraint should be met by at least one argument. The rule in \autoref{listing:example call signature rule value} says that at least one of the arguments passed during a function call should contain the string ``example string''.
+
+\begin{lstlisting}[label={listing:example call signature rule any argument}, caption={An example rule defining a constrains on all arguments.}, captionpos=b]
+- element: "any argument"
+  contains: "example string"
+\end{lstlisting}
+\end{itemize}
+
+\subsubsection{Operators}
+Constraints on the value of function call elements are defined using operators. An operator defines how the values (the value in the rule and the value of the function call element) are compared. These rules allow us to express constraints such as the function name should equal ``RegCreateKey''.
+
+The following operators are supported:
+\begin{itemize}
+  \item \texttt{equals}: The two values match if they are exactly the same. \autoref{listing:example call signature rule equals} gives an example of a rule using the \texttt{equals} operator.
+\begin{lstlisting}[label={listing:example call signature rule equals}, caption={An example rule using the \texttt{equals} operator.}, captionpos=b]
+- element: "function name"
+  equals: "sum"
+\end{lstlisting}
+
+  \item \texttt{contains}: The values match if the value in the rule is a substring of the function call element. In other words, \texttt{contains: "example string"} matches if the function call element contains the string ``example string''. \autoref{listing:example call signature rule value} shows such a rule.
+
+  This comparison is case-insensitive.
+
+  \item \texttt{in}: Matches, if the value of function call element is an element in a given list. For example, \autoref{listing:example call signature rule in}.
+\begin{lstlisting}[label={listing:example call signature rule in}, caption={An example rule using the \texttt{in} operator.}, captionpos=b]
+- element: "argument"
+  argument_index: 0
+  contains_in:
+    - 0x80000001
+    - 0x80000002
+\end{lstlisting}
+
+  \item \texttt{contains\_in}: Matches, if a string in a given list is a substring of the value of function call element. In other words, \texttt{contains: ["string A", "string B"]} matches if the function call element contains either ``string A'' or ``string B''.
+
+  For example, \autoref{listing:example call signature rule in} shows a rule that specifies that at least one argument should contain ``HKCU'' or ``HKEY\_CURRENT\_USER''.
+\begin{lstlisting}[label={listing:example call signature rule contains_in}, caption={An example rule using the \texttt{contains\_in} operator.}, captionpos=b]
+- element: "any argument"
+  contains_in:
+    - "HKCU"
+    - "HKEY_CURRENT_USER"
+\end{lstlisting}
+\end{itemize}
+
+\subsubsection{Type}
+Constraints on the type of a function call element are defined by the \texttt{type} key. For example, these rules allow us to express constraints as the second argument should be a string.
+
+\autoref{listing:example call signature rule type} shows an example of such a rule. There are multiple available types:
+\begin{itemize}
+  \item String
+
+  \item Number
+
+  \item Bytes: Sometimes it is useful to match the exact bytes of an argument (and not the string representation of the bytes). For example, in \autoref{section:call signatures dp} and \autoref{section:call signatures tp} we will see that this is useful to match structs with a constant value.
+
+  As YAML does not support bytes natively, we represent bytes as a hexadecimal string. \autoref{listing:example call signature rule bytes} show such a rule.
+
+\begin{lstlisting}[label={listing:example call signature rule bytes}, caption={An example rule specifying a bytes value.}, captionpos=b]
+- element: "argument"
+  argument_index: 1
+  equals: "48 65 6C 6C 6F 20 57 6F 72 6C 64"
+  type: "bytes"
+\end{lstlisting}
+\end{itemize}
+
+Some types are pre-defined. For example, the number of functions is always a number and the function name is always a string.
+
+In some cases, we want to specify a constraint on a value and type at the same time. For example, in \autoref{listing:example call signature rule bytes}, we give a string in the \texttt{equals} operator, but we explicitly specify that it should be interpreted as bytes.

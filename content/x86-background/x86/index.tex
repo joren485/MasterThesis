@@ -1,0 +1,10 @@
+\section{The x86 Architecture}\label{section:background x86}
+CPUs perform operations by executing instructions. The model that describes these instructions is called an \emph{instruction set architecture}. x86, an instruction set architecture developed by Intel, is the most widely used instruction set architecture \cite{x86-dominance}.
+
+An instruction indicates what operation the CPU should perform on data, stored in \emph{registers} (\autoref{section:registers}) and in the computers' memory.
+
+An important feature of an instruction set architecture is the size of the registers and memory addresses. For example, a 32-bit architecture means that the registers and memory addresses consist of 32 bits and can store $2^{32}$ different values. The 32-bit variant of the x86 architecture is called IA-32 (Intel Architecture, 32-bit). However, most modern systems use the 64-bit variant, x86-64. x86-64 has full backward compatibility with IA-32, meaning that applications compiled for IA-32 can run on x86-64 (as long as the operating system also supports running IA-32 binaries).
+
+\input{content/x86-background/x86/registers.tex}
+\input{content/x86-background/x86/stack.tex}
+\input{content/x86-background/x86/assembly.tex}

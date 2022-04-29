@@ -1,0 +1,26 @@
+\section{Function Calls}\label{section:function calls}
+Functions (sometimes called \emph{subroutines}) are an important part of modern programming languages. They allow splitting up code into reusable blocks. Functions can take inputs, called \emph{arguments}, and can return an output value. Executing the code in a function is done by \emph{calling} the function.
+
+In C++ (and most other programming languages), function calls are expressed using the following format: \texttt{function\_name(arg 0, arg 1, ..., arg n)}. Function calls consist of the following \emph{function call elements}:
+\begin{enumerate}
+    \item The function name.
+    \item The number of arguments.
+    \item The value and type of each argument.
+\end{enumerate}
+
+For example, the function call \texttt{sum(1, 2)} to the function in \autoref{listing:sum function} tells us that:
+\begin{enumerate}
+    \item The function name is ``\texttt{sum}''.
+    \item The function takes two arguments.
+    \item The first argument is an \texttt{int}, \texttt{1}.
+    \item The second argument is also an \texttt{int}, \texttt{2}.
+\end{enumerate}
+
+\begin{lstlisting}[label={listing:sum function}, caption={A C function that adds to integers together.}, captionpos=b]
+int sum(int a, int b){
+    return a + b;
+}
+\end{lstlisting}
+
+\input{content/x86-background/function-calls/calling-conventions.tex}
+\input{content/x86-background/function-calls/decompiling-function-calls.tex}

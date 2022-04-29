@@ -1,0 +1,30 @@
+\chapter{Conclusions}\label{chapter:conclusions}
+In malware analysis, it is important to better understand the functionality of a binary, because the source code of malware is generally not available and malware employs obfuscation techniques to hide its functionality. As executable binaries are complex data structures, it is often necessary to understand the instructions and control flow in a binary, and not only look at the binary as byte sequences, as we saw in the experiment in \autoref{appendix:binlex experiment}.
+
+\medskip
+
+In this thesis, we present a method to detect high-level functionality in malware binaries. This method consists of two steps: (1) describing the function calls that are used to implement a capability as patterns, including the arguments that are passed to such functions and (2) searching for these patterns in malware binaries.
+
+In \autoref{chapter:call signatures}, we introduced \emph{Call Signatures}, patterns on the function name, the number of arguments and the arguments of a function call.
+
+In \autoref{chapter:plugin}, we developed an IDA Pro plugin, called \emph{CSP}, that uses Call Signatures to search for function calls in a binary. Implementing the logic to search for function calls that match Call Signatures in an IDA Pro plugin has the advantage of being able to take advantage of the state-of-the-art disassembler and decompiler of IDA Pro.
+
+To hinder malware analysis, malware authors often obfuscate the functionality of their malware. However, our approach focuses on Windows API function calls, which are well-defined and the arguments that are passed to them are predictable. This makes API calls harder to obfuscate and better for pattern matching. Even if a function call is made indirectly (i.e. the address and function name are unknown), we can still match the function call based on the arguments it is given.
+
+\medskip
+
+To showcase the usage and effectiveness of Call Signatures and CSP, we used them to detect persistence techniques in 32-bit Windows malware samples. We chose persistence as it is commonly implemented by malware. We chose 32-bit Windows as most malware is Windows-based and compiled for 32-bit Windows \cite{windows-malware} \cite{64-bit-malware}.
+
+As existing classifications of malware functionality (such as MITRE ATT\&CK) are not fine-grained enough, we provided our own taxonomy of common persistence techniques (in \autoref{chapter:persistence techniques}). We found that persistence techniques generally fall into four categories (based on which Windows feature they rely on): registry-based, directory-based, service-based, and scheduled task-based techniques
+
+For one technique of each category, we wrote Call Signatures (\autoref{chapter:call signatures for persistence techniques}) and created a dataset of malware samples that implement the technique (\autoref{chapter:experiments}). The SHA-256 hashes of each dataset are available in \autoref{appendix:hashes}. CSP (using the Call Signatures) was able to detect the technique in most samples in each dataset. The lowest detection rate of a dataset is 67.86\% and the highest is 100\%. The two main reasons CSP was unable to detect a persistence technique are obfuscation by the malware and limitations in the decompiler of IDA Pro.
+
+Obfuscation is a limitation of all static analysis tools: if a malware sample obfuscates the arguments it uses (e.g. by encrypting them), static analysis will not be able to detect them.
+
+\medskip
+
+We also ran a tool similar to our research, Capa, on each dataset (\autoref{section:capa comparison experiments}), to see how well Call Signatures and CSP perform, compared to existing tooling. We found that Call Signatures and CSP were able to perform as well as (and in some cases, slightly better than) Capa. We found that CSP detected more samples than Capa than our Call Signatures describing more ways to implement a technique and CSP being able to detect function calls without knowing the function name. Finally, we analyzed (in \autoref{section:capa false positives}) why Call Signatures and CSP can be less prone to false positives than Capa.
+
+\medskip
+
+In summary, we showed that function calls can be a good indicator of high-level malware functionality and searching for patterns on a function call level can be beneficial over or alongside existing detection methods. We provided Call Signatures and CSP to search for function calls in binaries.

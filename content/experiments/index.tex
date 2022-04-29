@@ -1,0 +1,9 @@
+\chapter{Experiments \& Analysis}\label{chapter:experiments}
+In \autoref{chapter:call signatures}, we presented Call Signatures, expressions to describe function calls of interest. We implemented an IDA Pro plugin, CSP, that searches for function calls using Call Signatures (in \autoref{chapter:plugin}). In \autoref{chapter:call signatures for persistence techniques}, we used Call Signatures to describe persistence techniques (from \autoref{chapter:persistence techniques}).
+
+In this chapter, we will analyze whether CSP detects persistence techniques in known malware. In \autoref{section:real-world experiments}, we create datasets of real-world malware samples that implement each of the four techniques in \autoref{chapter:call signatures for persistence techniques}. We run the CSP on each dataset with the relevant Call Signatures, to see for many samples it detects the persistence techniques.
+
+To see how well CSP and the Call Signatures from \autoref{chapter:call signatures for persistence techniques} perform compared to existing tooling, we run Capa (earlier discussed in \autoref{chapter:related work}) on the same datasets from \autoref{section:real-world experiments}. In \autoref{section:capa comparison experiments}, we analyze how Capa works, how it performs in our experiments, and why.
+
+\input{content/experiments/real-world.tex}
+\input{content/experiments/capa/index.tex}

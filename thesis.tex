@@ -1,0 +1,103 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+
+\PassOptionsToPackage{obeyspaces}{url}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
+\usepackage{graphicx}
+
+\usepackage{biblatex}
+
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{multicol}
+
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\addbibresource{content/references/books.bib}
+\addbibresource{content/references/links.bib}
+\addbibresource{content/references/papers.bib}
+
+\lstset{basicstyle=\ttfamily\footnotesize,
+	keepspaces=true,
+	backgroundcolor=\color{lightgray},
+	showstringspaces=false,
+	upquote=true,
+	breaklines=true,
+	numbers=left,
+}
+
+\renewcommand*\Itemautorefname{technique}
+
+\hypersetup{
+	colorlinks=true,
+	urlcolor = NavyBlue,
+	citecolor = Maroon,
+	linkcolor = Violet,
+}
+
+\begin{document}
+
+\begin{titlepage}
+	\begin{center}
+		\textsc{\LARGE Master thesis\\Computing Science: Cyber Security}\\[1.5cm]
+		\includegraphics[height=100pt]{resources/images/logo}
+
+		\vspace{0.4cm}
+		\textsc{\Large Radboud University}\\[1cm]
+		\hrule
+		\vspace{0.4cm}
+		\textbf{\huge Detecting Capabilities in Malware Binaries by Searching for Function Calls}\\[0.4cm]
+		\hrule
+		\vspace{2cm}
+
+		\begin{minipage}[t]{0.45\textwidth}
+			\begin{flushleft}
+				\large
+				\textit{Author:}\\ Joren Vrancken\\ s4593847
+			\end{flushleft}
+		\end{minipage}
+		\begin{minipage}[t]{0.45\textwidth}
+			\begin{flushright}
+				\large \textit{Supervisor \& First Assessor:}\\ dr. ir. Erik Poll\\ \href{mailto:erikpoll@cs.ru.nl}{\texttt{erikpoll@cs.ru.nl}}\\[1.3cm]
+				\textit{Second assessor:}\\ dr. Freek Verbeek\\ \href{mailto:freek@vt.edu}{\texttt{freek@vt.edu}}
+			\end{flushright}
+		\end{minipage}
+	\vfill
+	{\large \today}
+	\end{center}
+\end{titlepage}
+
+\input{content/acknowledgements}
+\thispagestyle{empty}
+
+\input{content/abstract}
+
+\tableofcontents
+
+\input{content/introduction.tex}
+\input{content/related-work.tex}
+\input{content/x86-background/index.tex}
+\input{content/malware/index.tex}
+
+\input{content/call-signatures/index.tex}
+\input{content/plugin/index.tex}
+
+\input{content/techniques/index.tex}
+\input{content/techniques-signatures/index.tex}
+
+\input{content/experiments/index.tex}
+
+\input{content/future-work.tex}
+\input{content/conclusions.tex}
+
+\printbibliography[heading=bibintoc]
+
+\appendix
+\input{content/appendix/index}
+
+\end{document}

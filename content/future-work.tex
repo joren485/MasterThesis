@@ -1,0 +1,33 @@
+\chapter{Future Work}\label{chapter:future work}
+\begin{itemize}
+    \item \textbf{Other Functionality \& Architectures} The scope of this thesis is detection of persistence in 32-bit Windows malware. An interesting continuation of this research would be to see if the results hold if we broaden the scope.
+
+    There are multiple options for broadening the scope:
+    \begin{itemize}
+
+        \item \textbf{High-level functionality}: We chose to focus on persistence, but, as discussed in \autoref{chapter:background malware}, persistence is only one part of the malware life cycle. The same detection can be used for other high-level functionality (e.g. lateral movement or C\&C communication).
+
+        \item \textbf{Low-level functionality} It would be interesting to research whether it is possible to detect low-level functionality by searching for function calls. Interesting low-level functionality to look at includes cryptography and networking.
+
+        \item \textbf{Architectures}: We chose to focus on 32-bit Windows binaries, as most malware is Windows-based and compiled for 32-bit Windows. However, the detection technique based on function calls we present in \autoref{chapter:call signatures}, can also be applied to different binary formats (e.g. ELF), architectures (e.g. ARM), and 64-bit versions of operating systems.
+
+        A logical continuation of this research would be to focus on 64-bit Windows as malware is most prevalent on Windows and some malware is made specifically for 64-bit Windows \cite{64-bit-malware}. However, the calling conventions used in 64-bit Windows are more complex than those used in 32-bit Windows, making detection of how many and which arguments are passed during a call harder.
+
+        Using IDA Pro will be useful, as it has built-in support for many CPU architectures (as discussed in \autoref{section:ida pro}), including x86-64.
+    \end{itemize}
+
+    \item \textbf{Countermeasures} A logical continuation of research about detection is to look at how to circumvent the detection. This research could focus on bypassing detection of a specific (persistence) technique or bypassing detection based on function calls in general (e.g. by rewriting \texttt{call} instructions to \texttt{jmp} instructions).
+
+    \item \textbf{Taxonomy} In \autoref{chapter:persistence techniques}, we provide a taxonomy of persistence techniques. We used our own classifications, because the existing taxonomy for malware capabilities, MITRE ATT\&CK, is not as fine-grained as we need. Research into creating a model for a fine-grained taxonomy, would be a good contribution. Such a taxonomy could have the following layers:
+    \begin{enumerate}
+        \item The high-level functionality (e.g. persistence): What malware is trying to achieve in broad terms.
+
+        \item The low-level functionality (e.g. writing to a specific Registry key): The techniques used to achieve the high-level functionality.
+
+        \item The implementation (e.g. using the \texttt{CreateRegKey} API function): The ways in which malware can implement low-level functionality. For example, in \autoref{section:background windows registry}, we discussed multiple ways to interact with the Windows Registry.
+    \end{enumerate}
+
+    \item \textbf{Compatibility with Dynamic Analysis} This thesis is about static analysis. However, malware analysis does not have to choose between static and dynamic analysis. It is often useful to use both complementary. It would be interesting to look at how our methodology can be used together with dynamic analysis tools (such as debuggers). For example, Funcap\footnote{\tiny \url{https://github.com/deresz/funcap}} is a tool that records the arguments of function calls it sees while a binary is running. Another possibility would be automatically setting breakpoints at function calls detected by CSP.
+
+    \item \textbf{General Applications of Call Signature Detection} Call Signatures and CSP allow us to search for function calls in binaries. These function calls do not have to be used in malware functionality and the binaries do not have to be malicious. Searching for function calls might also be useful in other applications. For example, code re-use detection or malware detection.
+\end{itemize}

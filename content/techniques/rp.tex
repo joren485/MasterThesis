@@ -1,0 +1,60 @@
+\section{Registry-based Persistence Techniques}\label{section:registry-based persistence}
+As discussed in \autoref{section:background windows registry}, the Registry is a database of configuration settings for Windows. Malware commonly use the following techniques to achieve persistence via the Registry.
+
+\begin{enumerate}[label={\textbf{RP\arabic*}:}, ref=RP\arabic*, start=0]
+    \item \label{RP0} Executables that are specified in a value in the Registry key \path{HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run} (or a subkey of this key) will run each time the current user logs in \cite{andrea-blog} \cite{run-key}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: No
+        \item \textbf{ATT\&CK ID}: T1547.001
+    \end{itemize}
+
+    \item \label{RP1} The Registry key \path{HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce} works similarly to \autoref{RP0}, but the values are deleted when they are executed \cite{andrea-blog} \cite{run-key}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: No
+        \item \textbf{ATT\&CK ID}: T1547.001
+    \end{itemize}
+
+    \item \label{RP2} \path{HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run} is the system-wide variant of the key in \autoref{RP0}. When a user logs in, all executables defined in values in this key (or a subkey of this key) are run \cite{andrea-blog} \cite{practical-malware-analysis} \cite{run-key}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: Yes
+        \item \textbf{ATT\&CK ID}: T1547.001
+    \end{itemize}
+
+    \item \label{RP3} The Registry key \path{HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce} works similarly to \autoref{RP2}, but the values are deleted when they are executed \cite{andrea-blog} \cite{run-key}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: Yes
+        \item \textbf{ATT\&CK ID}: T1547.001
+    \end{itemize}
+
+    \item \label{RP4} The DLLs specified in the \texttt{AppInit\_DLLs} value of \path{HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows} are loaded into every process that also loads \texttt{User32.dll} (most applications load \texttt{User32.dll}) \cite{andrea-blog} \cite{practical-malware-analysis}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The process that the DLL is loaded into.
+        \item \textbf{Administrator rights required}: Yes
+        \item \textbf{ATT\&CK ID}: T1546.010
+    \end{itemize}
+
+    \item \label{RP5} Windows runs \texttt{userinit.exe} when a user logs in to initialize the user session. This executable is specified in the \texttt{Userinit} value in \path{HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon}. The \texttt{Userinit} value can be changed to a comma-separated list of executables that will all be run when a user logs in \cite{andrea-blog} \cite{winlogon-persistence}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The user that logs in.
+        \item \textbf{Administrator rights required}: Yes
+        \item \textbf{ATT\&CK ID}: T1547.004
+    \end{itemize}
+
+    \item \label{RP6} Windows runs \texttt{explorer.exe} when a user logs in to set up the graphical user interface. This executable is specified in the \texttt{Shell} value in \path{HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon}. Like \autoref{RP5}, this value can be changed into a comma-separated list of executables \cite{andrea-blog} \cite{winlogon-persistence}.
+
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \textbf{Runs as}: The current user.
+        \item \textbf{Administrator rights required}: Yes
+        \item \textbf{ATT\&CK ID}: T1547.004
+    \end{itemize}
+\end{enumerate}

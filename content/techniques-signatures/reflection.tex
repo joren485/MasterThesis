@@ -1,0 +1,18 @@
+\section{A Reflection on Writing Call Signatures}\label{section:reflection on writing call signatures}
+After writing the Call Signatures for this chapter, we wanted to share some thoughts on the process of writing Call Signatures.
+
+Generally speaking, Call Signatures are quite expressive. We were able to express every constraint on function call elements we wanted, with a relatively small number of operators and types.
+
+Especially only supporting three types (strings, numbers, and bytes) seemed to be enough to cover all situations we want. This is likely because many API functions use constants as arguments. Besides this, interesting arguments are often strings (e.g. Registry paths and commands for the command line).
+
+\medskip
+
+In an earlier iteration of Call Signatures, we included the return type as a function call element. However, we noticed that we never used a constraint on the return type when writing Call Signatures. The return type was not needed, because the only times we know the return type is for Windows API functions, and we were already able to search for these using the function name. Writing rules that constraint the function name and arguments was enough for us.
+
+\medskip
+
+In \autoref{section:call signatures dp}, we wrote Call Signatures for multiple similar API functions that are used to resolve paths. This resulted in multiple Call Signatures with only slight differences. It would be a good improvement to be able to combine these into one Call Signature.
+
+\medskip
+
+Unfortunately, string parameters are not always passed directly into calls. Sometimes, they are first manipulated in some way. For example, they are turned into \texttt{CString} objects\footnote{\tiny \url{https://docs.microsoft.com/en-us/cpp/atl-mfc-shared/using-cstring}} or formatted using \texttt{cprintf}\footnote{\tiny \url{https://www.cplusplus.com/references/cstdio/printf/}}. To capture such situations, we wrote Call Signatures to search for function calls to unspecified functions with a string as one of their arguments. For example, the Call Signatures in \autoref{listing:call signature run key reg.exe} and \autoref{listing:call signature schtasks.exe}. This allows us to detect many calls to functions that perform some action on a string of interest. This does however increase the chance of false positives.

@@ -1,0 +1,34 @@
+\chapter{Call Signatures}\label{chapter:call signatures}
+In this chapter, we present \emph{Call Signatures}: patterns that allow us to search for the function name and arguments of function calls.
+
+In \autoref{chapter:plugin}, we implement an IDA Pro plugin that searches for function calls that match the patterns in Call Signatures. Taken together, the plugin and Call Signatures allow us to search for specific function calls in binaries. By not only constraining the function name but also constraining the arguments of function calls, we can find specific uses of a function (e.g. opening a specific Registry key)
+
+In \autoref{chapter:call signatures for persistence techniques}, we provide several Call Signatures that match function calls that are used to implement persistence techniques (which are discussed in \autoref{chapter:persistence techniques}). In \autoref{chapter:experiments}, we show that it is possible to detect malware capabilities using Call Signatures and our plugin, by detecting persistence techniques in real-world malware samples.
+
+We define Call Signatures and discuss their syntax in detail in \autoref{section:call signatures syntax}. We look at some examples of Call Signatures in \autoref{section:call signatures examples}
+
+\medskip
+
+Call Signatures define constraints on \emph{function call elements}: the function name, the number of arguments, and arguments.
+
+Call Signatures consists of multiple \emph{rules}, expressions that constraint one function call element. For example, if we want to search for the function call \texttt{sum(0, 3)}, we could define the following rules:
+\begin{enumerate}
+  \item The function name equals ``sum''.
+  \item The function takes two arguments.
+  \item The first argument equals \texttt{0}.
+  \item The second argument equals \texttt{3}.
+\end{enumerate}
+
+\medskip
+
+We use the following definitions in this section:
+\begin{itemize}
+  \item \textbf{Function call element}: One of the following elements that are part of a function call: the function name, the number of arguments and the arguments. See \autoref{section:function calls} for more details.
+
+  \item \textbf{Rule}: A constraint on a function call element. For example, the function name should contain ``sum''.
+
+  \item \textbf{Call Signature}: A combination of rules that together constraint a function call. Note the distinction that Call Signatures define constraints on \emph{function calls} and rules define constraints on \emph{function call elements}.
+\end{itemize}
+
+\input{content/call-signatures/call-signatures.tex}
+\input{content/call-signatures/examples.tex}

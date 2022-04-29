@@ -1,0 +1,136 @@
+\chapter{Example Code Used in the Dynamic Linking Comparison}\label{appendix:source code run time linking}
+This appendix contains two semantically equivalent code examples that differ in the way they resolve Windows API functions. These are used in \autoref{section:comparison load time run time dynamic linking}.
+
+\begin{lstlisting}[caption={Example code that uses load-time dynamically linked function calls.}, label={listing:load-time dynamic linking code}, captionpos=b]
+#include <iostream>
+#include <Tchar.h>
+#include <windows.h>
+
+int main()
+{
+    const LPCWSTR KEY_NAME = _T(
+        "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"
+    );
+    const LPCWSTR VALUE_NAME = _T("ProductName");
+
+    ULONG result;
+
+    HKEY handle;
+    WCHAR buffer[128];
+    ULONG bufferSize = sizeof(buffer);
+
+    result = RegOpenKeyEx(
+        HKEY_LOCAL_MACHINE,
+        KEY_NAME,
+        NULL,
+        KEY_READ | KEY_WOW64_64KEY,
+        &handle
+    );
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    result = RegQueryValueEx(
+        handle,
+        VALUE_NAME,
+        NULL,
+        NULL,
+        (LPBYTE)buffer,
+        &bufferSize
+    );
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    result = RegCloseKey(handle);
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    std::wcout << "'" << buffer << "'" << "\n";
+
+    return 0;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Example code that uses run-time dynamically linked function calls.}, label={listing:run-time dynamic linking code}, captionpos=b]
+#include <iostream>
+#include <Tchar.h>
+#include <windows.h>
+
+int main()
+{
+    typedef LSTATUS(WINAPI *fOpenKey)(
+HKEY, LPCWSTR, DWORD, REGSAM, PHKEY
+        );
+    typedef LSTATUS(WINAPI *fQueryKey)(
+        HKEY, LPCWSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD
+        );
+    typedef LSTATUS(WINAPI *fCloseKey)(HKEY);
+
+    const LPCWSTR KEY_NAME = _T(
+        "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"
+    );
+    const LPCWSTR VALUE_NAME = _T("ProductName");
+
+    ULONG result;
+
+    HKEY handle;
+    WCHAR buffer[128];
+    ULONG bufferSize = sizeof(buffer);
+
+    HMODULE hLib = LoadLibrary(_T("Advapi32.dll"));
+    if (hLib == NULL) {
+        return GetLastError();;
+    }
+
+    fOpenKey hRegOpenKeyEx = (fOpenKey) GetProcAddress(
+        hLib, "RegOpenKeyExW"
+    );
+    fQueryKey hRegQueryValueEx = (fQueryKey) GetProcAddress(
+        hLib, "RegQueryValueExW"
+    );
+    fCloseKey hRegCloseKey = (fCloseKey) GetProcAddress(
+        hLib, "RegCloseKey"
+    );
+    if (hRegOpenKeyEx == NULL ||
+        hRegQueryValueEx == NULL ||
+        hRegCloseKey == NULL) {
+        return GetLastError();
+    }
+
+    result = hRegOpenKeyEx(
+        HKEY_LOCAL_MACHINE,
+        KEY_NAME,
+        NULL,
+        KEY_READ | KEY_WOW64_64KEY,
+        &handle
+    );
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    result = hRegQueryValueEx(
+        handle,
+        VALUE_NAME,
+        NULL,
+        NULL,
+        (LPBYTE)buffer,
+        &bufferSize
+    );
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    result = hRegCloseKey(handle);
+    if (result != ERROR_SUCCESS) {
+        return result;
+    }
+
+    FreeLibrary(hLib);
+
+    std::wcout << "'" << buffer << "'" << "\n";
+
+    return 0;
+}
+    \end{lstlisting}

@@ -1,0 +1,39 @@
+\subsection{False Positives}\label{section:capa false positives}
+In the experiment in the previous section, we analyzed the false negatives of CSP and Capa. In this section, we discuss false positives.
+
+Intuitively, Call Signatures and CSP are less prone to false positives than Capa, because Call Signatures operate on a smaller scope (as we discussed in the first difference in \autoref{section:differences call signatures and capa rules}). Capa leaves more room for false positives by looking for specific elements in basic blocks, functions or binaries regardless of how the elements are used and relate to each other.
+
+\medskip
+
+Unfortunately, there is no automated way to know for certain that a sample does not implement a specific technique, which means that finding and analyzing false positives requires a lot of manual work.
+
+\medskip
+
+During our research we noticed eleven samples that were detected (to implement \autoref{DP0}) by Capa, but not by CSP. Manual inspection revealed that these eleven samples do not implement \autoref{DP0}. This shows that our intuition that Call Signatures and CSP are less prone to false positives than Capa is at least anecdotally true.
+
+The decompiled function in \autoref{listing:capa false positive code}\footnote{The hash of the sample is \tiny \texttt{0102777ec0357655c4313419be3a15c4ca17c4f9cb4a440bfb16195239905ade}.} shows us one of these false positives.
+
+\begin{minipage}{0.9\textwidth}
+\begin{lstlisting}[label={listing:capa false positive code}, caption={Pseudo code of a call to \texttt{SHGetFolderPath}, decompiled by IDA Pro.}, captionpos=b]
+int __usercall sub_1002A2E0@<eax>(int a1@<esi>)
+{
+  WCHAR pszPath[622]; // [esp+Ch] [ebp-4ECh] BYREF
+  int v3; // [esp+4F4h] [ebp-4h]
+
+  *(_DWORD *)(a1 + 20) = 7;
+  *(_DWORD *)(a1 + 16) = 0;
+  *(_WORD *)a1 = 0;
+  v3 = 0;
+  memset(pszPath, 0, 0x26Du);
+  if ( SHGetFolderPathW(0, 28, 0, 0, pszPath) >= 0 )
+    sub_1000BC70(pszPath, a1, wcslen(pszPath));
+  return a1;
+}
+\end{lstlisting}
+\end{minipage}
+
+To detect \autoref{DP0}, Capa searches for two elements: a call to \texttt{SHGetFolderPath} and the constant \texttt{7} (representing the user startup directory). We can see that \texttt{SHGetFolderPath} is called in \autoref{listing:capa false positive code} (on line 11), but it is used to resolve the path to the Application Data directory (represented by the constant 28). Capa also finds the constant \texttt{7} in the function (on line 6), but it is unrelated to the call to \texttt{SHGetFolderPath}.
+
+\medskip
+
+CSP does not detect \autoref{DP0} in \autoref{listing:capa false positive code} (and neither does it for the other ten cases), because it looks at a smaller scope (i.e. the function call to \texttt{SHGetFolderPath}) and it does not find a function call that looks like \texttt{SHGetFolderPath(?, 7, ?, ?, ?)}. This shows that tools have a larger scope (like Capa) can be more prone to false positives than tools that have a smaller scope (like Call Signatures and CSP).

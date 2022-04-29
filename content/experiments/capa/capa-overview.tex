@@ -1,0 +1,39 @@
+\subsection{A Short Overview of Capa}
+Capa is a static malware analysis tool that detects the capabilities of malware samples. It is not limited to persistence but can detect many capabilities, ranging from simple interactions with the operating system (e.g. writing to a file) to more complex malware capabilities (e.g. communication with a C\&C server). It does not use the disassembler of IDA Pro, but a standalone disassembler called Vivisect\footnote{\tiny \url{https://github.com/vivisect/vivisect}}.
+
+Capa searches for specific elements (e.g. constants or Windows API function calls) in a binary. It pre-defines which elements it is looking for, for a specific capability, in \emph{rules} (to prevent confusion with the rules of Call Signatures, we will refer to the rules in Capa as \emph{Capa rules}). \autoref{listing:capa rule} shows an example of such Capa rule\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/persistence/startup-folder/get-startup-folder.yml}}.
+
+Each rule consists of meta-information (e.g. the name and the author) and a list of elements that it is looking for. In \autoref{listing:capa rule}, we see an example of a Capa rule.
+
+\begin{minipage}{0.9\textwidth}
+\begin{lstlisting}[label={listing:capa rule}, caption={The \texttt{get startup folder} Capa rule.}, captionpos=b]
+rule:
+  meta:
+    name: get startup folder
+    namespace: persistence/startup-folder
+    author: matthew.williams@mandiant.com
+    scope: basic block
+    att&ck:
+      - Persistence::Boot or Logon Autostart Execution::Registry Run Keys / Startup Folder [T1547.001]
+    examples:
+      - 07F7846BBCDA782E5639292AD93907EB:0x40121A
+  features:
+    - and:
+      - or:
+        - number: 0x07 = CSIDL_STARTUP
+        - number: 0x18 = CSIDL_COMMON_STARTUP
+      - or:
+        - api: shell32.SHGetFolderPath
+        - api: shell32.SHGetFolderLocation
+        - api: shell32.SHGetSpecialFolderPath
+        - api: shell32.SHGetSpecialFolderLocation
+\end{lstlisting}
+\end{minipage}
+
+Capa searches for the elements in a Capa rule in one of three scopes: a basic block, a function, or a binary. For example, in \autoref{listing:capa rule} all elements need to be present in a basic block. When all elements in a Capa rule are present in the scope of the Capa rule, Capa reports that a binary implements the capability that the rule describes.
+
+In \autoref{listing:capa rule}, we also see that it is possible to use conjunctions and disjunctions that allow users to define more complex expressions of elements (e.g. searching for \texttt{0x07} or \texttt{0x18}). Because of this, Capa rules often define multiple ways to implement a technique (e.g. \autoref{listing:capa rule} defines multiple API functions that resolve paths) or multiple techniques (e.g. \autoref{listing:capa rule} is looking for both \autoref{DP0} and \autoref{DP1}).
+
+\medskip
+
+For a detailed explanation of how Capa and its rules work, please read the documentation provided by Mandiant\footnote{\tiny \url{https://github.com/mandiant/capa-rules/blob/master/doc/format.md}}.

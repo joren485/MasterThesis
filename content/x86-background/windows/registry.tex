@@ -1,0 +1,47 @@
+\subsection{The Windows Registry}\label{section:background windows registry}
+The Windows Registry\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows/win32/sysinfo/registry}} is a database of configuration settings for both the OS and applications. It is used to store almost all settings of the Windows operating system (e.g. the current Windows Version and the configuration of each service).
+
+Malware uses the Registry as a source of information (e.g. to find the current version of the OS) and to achieve persistence\footnote{Fileless malware, a type of malware that does not depend on executable files, often uses the Registry to store its executable code \cite{fileless-malware}.} (as we see in \autoref{section:registry-based persistence}).
+
+\subsubsection{The Structure of the Windows Registry}
+The Registry has a tree-hierarchy that consists of \emph{keys} and \emph{values}. A key stores other keys (referred to as \emph{subkeys}) and values. Values are a combination of a name, data, and the type of the data, similar to files. A path of subkeys is referenced using a backslash as a delimiter, similar to Windows directory paths.
+
+\medskip
+
+Let's look at an example Registry key: \path{HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion}. This path contains five keys: \path{HKEY_LOCAL_MACHINE}, \path{SOFTWARE}, \path{Microsoft}, \path{Windows NT} and \path{CurrentVersion}. \path{SOFTWARE} is a subkey of \path{HKEY_LOCAL_MACHINE}, \path{Microsoft} is a subkey of \path{SOFTWARE}, etc.
+
+\medskip
+
+Registry paths always start with a root key. There are five root keys:
+\begin{itemize}
+    \item \texttt{HKEY\_LOCAL\_MACHINE} (\texttt{HKLM}): Stores settings that apply to the whole operating system and all users.
+    \item \texttt{HKEY\_USERS} (\texttt{HKU}): Stores user-specific settings. The direct subkeys of \texttt{HKU} are the identifiers of each user.
+    \item \texttt{HKEY\_CURRENT\_USER} (\texttt{HKCU}): A virtual key that points to the subkey of the current user in \texttt{HKU}.
+    \item \texttt{HKEY\_CURRENT\_CONFIG} (\texttt{HKCC}): Stores information on the current hardware configuration.
+    \item \texttt{HKEY\_CLASSES\_ROOT} (\texttt{HKCR}): Stores information on file extension associations.
+\end{itemize}
+
+The most important root keys for malware are \texttt{HKLM} and \texttt{HKCU}, as they contain the most useful information and control the most useful settings (e.g. which executables are automatically started at boot time).
+
+\subsubsection{CRUD Operations on the Windows Registry}
+There are multiple ways to interact with the Windows Registry (i.e. perform CRUD\footnote{CRUD stands for the four basic operations on databases and storage: Create, Read, Update and Delete.} operations on the Windows Registry):
+\begin{itemize}
+    \item The Windows API: The Windows API exposes multiple functions that can be used to read or manipulate the Registry. For example, \texttt{RegOpenKeyEx} and \texttt{RegQueryValueEx} used in \autoref{section:comparison load time run time dynamic linking}.
+
+    \item Registry Editor: Windows provides a GUI application that users can use to view and change the Registry.
+
+    \item \texttt{reg.exe} commands\footnote{\tiny \url{https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/reg}}: Windows also provides a command-line application that can be used to view and change the Registry from the command line.
+
+    \item \texttt{.reg} files: Windows support special script-like files that contain values for Registry keys. When these are executed, Windows automatically changes the Registry. \autoref{listing:reg file example} shows the contents of an example \texttt{.reg} file.
+
+    \begin{lstlisting}[caption={An example \texttt{.reg} file.}, captionpos=b, label={listing:reg file example}]
+    Windows Registry Editor Version 5.00
+
+    [HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
+    "startup value"="C:\Windows\System32\cmd.exe"
+    \end{lstlisting}
+\end{itemize}
+
+Malware most often uses the Windows API to edit the Registry directly \cite{practical-malware-analysis}.
+
+As some registry values control global settings or settings that impact security, many keys require administrative privileges to change (e.g. all keys under \texttt{HKLM}).

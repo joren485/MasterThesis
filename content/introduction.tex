@@ -1,0 +1,43 @@
+\chapter{Introduction}\label{chapter:introduction}
+Malware is software that is made with malicious intent. Its goal is to disrupt or damage computer systems, users, or networks \cite{microsoft-malware} \cite{practical-malware-analysis}. Criminals have started using malware for monetary gain. For example, by stealing banking and credit card information \cite{banking-malware} or by disrupting systems until a ransom has been paid \cite{ransomware}. The global intelligence community has also embraced malware to stealthily infiltrate the systems of adversaries \cite{perfect_weapon}. Their goals are not monetary\footnote{A notable exception to this is North Korea \cite{north-korea-chainalysis}.}, but rather stealing sensitive information, espionage, or disruption of vital sectors \cite{countdown-to-zero-day} \cite{sandworm}.
+
+The increased use of malware has increased the need for defense against and analysis of malware. Today many companies provide commercial antivirus suites that will scan consumer systems for known malware and malware behavior (e.g. Norton\footnote{\tiny \url{https://us.norton.com/}}, Kaspersky\footnote{\tiny \url{https://www.kaspersky.com/}}, and F-Secure\footnote{\tiny \url{https://www.f-secure.com/}}). Other companies focus on helping larger organizations protect themselves and perform incident response once a breach has been detected (e.g. Mandiant\footnote{\tiny \url{https://www.mandiant.com/}} and CrowdStrike\footnote{\tiny \url{https://www.crowdstrike.com/}}). This has created a digital arms race where malware authors will use evermore advanced techniques to evade detection and malware analysts will use evermore advanced techniques to detect malware.
+
+Malware analysis is the process of studying malware samples to try to determine their functionality, origin, and targets \cite{practical-malware-analysis}. It plays an important role in the defense against malware. Malware analysis helps understand known malware and discover unknown malware.
+
+According to the AV-test institute, about four hundred fifty thousand new malware samples are found every day \cite{av-test}. To process and analyze such a vast amount of data, we need tooling that automates malware analysis.
+
+\medskip
+
+In this thesis, we look at how to statically detect high-level functionality in malware binaries, by searching for patterns of function calls. Because API function calls are crucial to applications for any meaningful interaction with the operating system, we decided to detect high-level functionality using function calls (with specific arguments) as an indicator. Calls to API functions are harder to obfuscate than other parts of malware, as API functions are pre-defined by the operating system.
+
+We define high-level functionality (i.e. capabilities) as \emph{what} a malware sample is capable of (e.g. lateral movement, privilege escalation, and persistence). In contrast to low-level functionality, which describes \emph{how} a malware sample implements the high-level functionality (e.g. implementing disk encryption with AES encryption). We choose to focus on high-level functionality as it is more helpful to a malware analyst to know what a sample is capable of. For example, it is generally more interesting to know that a sample encrypts files than that a sample uses AES encryption.
+
+As most malware is written for Windows \cite{windows-malware}, we will focus on Windows binaries. Almost all newly sold Windows computers run a 64-bit version of Windows \cite{64-bit-malware}. However, as 64-bit Windows provides backward compatibility for 32-bit executables \cite{wow64}, most malware is still written for 32-bit \cite{64-bit-malware}, as it allows a single executable to infect both 32-bit and 64-bit machines. Therefore, we will focus specifically on malware made for 32-bit Windows.
+
+\medskip
+
+Before we discuss the research itself, we first go over related research (\autoref{chapter:related work}) and background information. In \autoref{chapter:background x86 windows}, we discuss background information on x86, function calls and Windows, and in \autoref{chapter:background malware} we discuss malware and malware analysis.
+
+\medskip
+
+We split the detection of high-level functionality into two steps:
+\begin{enumerate}
+    \item Defining patterns for the function calls that are commonly used to implement the functionality. In \autoref{chapter:call signatures}, we introduce such patterns: \emph{Call Signatures}.
+
+    \item Searching for function calls that match these patterns in binaries. In \autoref{chapter:plugin}, we develop an IDA Pro plugin, called \emph{CSP}, that uses Call Signatures to search for function calls in binaries. We choose to develop a plugin for IDA Pro, because IDA Pro is the most popular reverse engineering toolkit \cite{ida_guide}.
+\end{enumerate}
+
+\medskip
+
+We test and showcase the usage of Call Signatures and CSP by using them to detect specific high-level functionality in real-world malware samples.
+
+The high-level functionality we will focus on is persistence, the capability that describes how malware maintains access to an infected victim. We choose to focus on persistence as it is commonly implemented by malware \cite{practical-malware-analysis}.
+
+First, we analyze which techniques are commonly used by malware to achieve persistence (in \autoref{chapter:persistence techniques}). Second, in \autoref{chapter:call signatures for persistence techniques}, we analyze the function calls used to implement these techniques and write Call Signatures to describe them.
+
+In \autoref{chapter:experiments}, we create datasets of malware samples that implement four different persistence techniques and run CSP on each dataset to see how well it can detect the persistence techniques. We also run another static analysis tool (Capa by Mandiant) on the datasets, to see how Call Signatures and CSP compare to existing tooling.
+
+\medskip
+
+We conclude by looking at interesting ideas to expand upon this research (\autoref{chapter:future work}) and with a discussion (\autoref{chapter:conclusions}).
